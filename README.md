@@ -4,6 +4,34 @@ A top-down, read-only, multi-repo reverse engineering terminal UI that integrate
 
 [MIT License](LICENSE.md) | [Philosophy](PHILOSOPHY.md)
 
+## Demo
+
+<!-- Replace with your recorded video. asciinema or mp4/gif hosted on GitHub. -->
+<!-- Example with asciinema: -->
+<!-- [![asciicast](https://asciinema.org/a/YOUR_ID.svg)](https://asciinema.org/a/YOUR_ID) -->
+<!-- Example with mp4/gif: -->
+<!-- ![Demo](docs/demo.gif) -->
+
+> **TODO**: Add a demo video walkthrough. See [Recording a demo](#recording-a-demo) below.
+
+## Screenshots
+
+### Repo Explorer
+![Repo Explorer](docs/screenshots/repo-screen.png)
+> File tree, symbol table, and integration signals with confidence/direction coloring.
+
+### File Viewer
+![File Viewer](docs/screenshots/file-screen.png)
+> Syntax-highlighted source with file-scoped symbols and integration signals.
+
+### Function Analysis — Dataflow + Chat
+![Function Dataflow](docs/screenshots/function-dataflow.png)
+> Def-use chains, variable dependencies, reaching definitions, and LLM-powered contextual Q&A.
+
+### Function Analysis — Chat
+![Function Chat](docs/screenshots/function-chat.png)
+> Ask questions about the function — the LLM has full context of IR, dataflow, and VM state.
+
 ## What it does
 
 Engineers exploring unfamiliar codebases can drill down from a high-level overview to function-level symbolic execution, with an LLM chat pane for contextual questions.
@@ -28,7 +56,7 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 - BGE embedding concretisation for signal classification (when enabled)
 
 ### FileScreen
-- Syntax-highlighted source viewer
+- Syntax-highlighted source viewer (background-loaded for responsiveness)
 - File-scoped symbols and integration signals
 
 ### FunctionScreen
@@ -48,7 +76,7 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 ### Install
 
 ```bash
-git clone <this-repo> rev-eng-tui
+git clone git@github.com:avishek-sen-gupta/reddragon-codescry-tui.git rev-eng-tui
 cd rev-eng-tui
 poetry install
 ```
@@ -101,7 +129,7 @@ poetry run retui --config config/repos.json
 The TUI delegates all analysis to two libraries:
 
 - **Codescry** (`repo_surveyor`): `survey()` scans a repo and returns CTags symbols, integration signals, resolution results, and concretisation. Optionally runs BGE embedding concretisation via `PatternEmbeddingConcretiser` for signal classification.
-- **Red Dragon** (`interpreter`): `lower_source()` parses and lowers code to IR. `build_cfg_from_source()` builds a function-scoped CFG. `dump_mermaid()` generates Mermaid flowcharts. `run()` performs symbolic execution. `analyze()` computes dataflow (def-use chains, reaching definitions).
+- **Red Dragon** (`interpreter`): `lower_source()` parses and lowers code to IR. `build_cfg_from_source()` builds a function-scoped CFG. `dump_mermaid()` generates Mermaid flowcharts. `run()` performs symbolic execution. `analyze()` computes dataflow (def-use chains, reaching definitions). `extract_function_source()` uses tree-sitter AST parsing to extract function bodies from source files.
 
 The `AnalysisFacade` (`facade/analysis.py`) unifies both libraries into a single cached API. Function-level analysis uses Red Dragon's API to scope the CFG to just the selected function via `extract_function_instructions()`.
 
@@ -131,3 +159,16 @@ Survey results, function analysis, chat history, and navigation state are persis
 ```bash
 poetry run pytest tests/ -v
 ```
+
+## Recording a demo
+
+For a video demo, [asciinema](https://asciinema.org/) works well for terminal recordings:
+
+```bash
+brew install asciinema
+asciinema rec docs/demo.cast
+# Run the TUI, navigate through screens, then exit with q and Ctrl-D
+asciinema upload docs/demo.cast
+```
+
+Alternatively, use macOS screen recording (`Cmd+Shift+5`) or [OBS](https://obsproject.com/).
