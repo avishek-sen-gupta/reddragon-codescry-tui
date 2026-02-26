@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -54,8 +54,8 @@ class FileScreen(Screen):
 
     def on_mount(self) -> None:
         self._update_breadcrumb()
-        self._load_source()
-        self._populate_tables()
+        self._show_loading()
+        self._load_file()
 
     def _short_path(self) -> str:
         return self.file_path.rsplit("/", 1)[-1] if "/" in self.file_path else self.file_path
@@ -64,56 +64,63 @@ class FileScreen(Screen):
         bar = self.query_one(StatusBar)
         bar.breadcrumb = ["Dashboard", self.repo.name, self._short_path()]
 
-    def _load_source(self) -> None:
-        """Load and display the source file with line numbers."""
+    def _show_loading(self) -> None:
         viewer = self.query_one("#source-viewer", RichLog)
+        viewer.write("[italic #2ac3de]Loading source...[/]")
 
-        # Resolve the full path
+    @work(thread=True, description="Loading file...")
+    def _load_file(self) -> None:
+        """Load source and table data in a background thread."""
+        source_data = self._read_source()
+        symbols = self.bundle.symbols_for_file(self.file_path) if self.bundle else []
+        signals = self.bundle.signals_for_file(self.file_path) if self.bundle else []
+        self.app.call_from_thread(self._populate_ui, source_data, symbols, signals)
+
+    def _read_source(self) -> dict:
+        """Read file content from disk (runs in background thread)."""
         repo_root = Path(self.repo.path).expanduser().resolve()
         full_path = repo_root / self.file_path
 
         if not full_path.exists():
-            viewer.write(f"[#f7768e]File not found: {full_path}[/]")
-            return
+            return {"error": f"File not found: {full_path}"}
 
         try:
             content = full_path.read_text(encoding="utf-8", errors="replace")
         except Exception as e:
-            viewer.write(f"[#f7768e]Error reading file: {e}[/]")
-            return
+            return {"error": f"Error reading file: {e}"}
 
-        # Determine language for syntax hints
-        ext = full_path.suffix.lower()
-        lang_map = {
-            ".py": "python", ".java": "java", ".js": "javascript",
-            ".ts": "typescript", ".go": "go", ".rs": "rust",
-            ".rb": "ruby", ".php": "php", ".c": "c", ".cpp": "cpp",
-            ".cs": "csharp", ".kt": "kotlin", ".scala": "scala",
-        }
+        return {"content": content, "ext": full_path.suffix.lower()}
 
-        from rich.syntax import Syntax
-        syntax = Syntax(
-            content,
-            lexer=lang_map.get(ext, "text"),
-            theme="monokai",
-            line_numbers=True,
-            line_range=None,
-        )
-        viewer.write(syntax)
+    def _populate_ui(self, source_data: dict, symbols: list, signals: list) -> None:
+        """Update all UI widgets on the main thread."""
+        viewer = self.query_one("#source-viewer", RichLog)
+        viewer.clear()
 
-    def _populate_tables(self) -> None:
-        if not self.bundle:
-            return
+        if "error" in source_data:
+            viewer.write(f"[#f7768e]{source_data['error']}[/]")
+        else:
+            lang_map = {
+                ".py": "python", ".java": "java", ".js": "javascript",
+                ".ts": "typescript", ".go": "go", ".rs": "rust",
+                ".rb": "ruby", ".php": "php", ".c": "c", ".cpp": "cpp",
+                ".cs": "csharp", ".kt": "kotlin", ".scala": "scala",
+            }
+            from rich.syntax import Syntax
+            syntax = Syntax(
+                source_data["content"],
+                lexer=lang_map.get(source_data["ext"], "text"),
+                theme="monokai",
+                line_numbers=True,
+            )
+            viewer.write(syntax)
 
-        # File-specific symbols
-        symbols = self.bundle.symbols_for_file(self.file_path)
-        sym_table = self.query_one("#file-symbol-table", SymbolTable)
-        sym_table.populate(symbols)
-
-        # File-specific signals
-        signals = self.bundle.signals_for_file(self.file_path)
-        int_table = self.query_one("#file-integration-table", IntegrationTable)
-        int_table.populate(signals)
+        # Tables
+        if symbols:
+            sym_table = self.query_one("#file-symbol-table", SymbolTable)
+            sym_table.populate(symbols)
+        if signals:
+            int_table = self.query_one("#file-integration-table", IntegrationTable)
+            int_table.populate(signals)
 
     @on(DataTable.RowSelected, "#file-symbol-table")
     def on_symbol_selected(self, event: DataTable.RowSelected) -> None:
