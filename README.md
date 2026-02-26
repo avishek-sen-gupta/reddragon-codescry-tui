@@ -75,10 +75,11 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 ```bash
 git clone https://github.com/avishek-sen-gupta/reddragon-codescry-tui.git rev-eng-tui
 cd rev-eng-tui
-poetry install
+poetry install          # core dependencies only
+poetry install --with ml  # include Codescry + Red Dragon analysis engines
 ```
 
-Codescry and Red Dragon are pulled automatically from GitHub as Poetry dependencies.
+Codescry and Red Dragon are in the optional `ml` dependency group. Install with `--with ml` to enable full analysis capabilities.
 
 ### Configure
 

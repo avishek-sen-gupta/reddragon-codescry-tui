@@ -16,13 +16,9 @@ rich-pixels = ">=3.0"
 python-dotenv = "^1.2.1"
 sentence-transformers = "^5.2.3"
 
-[tool.poetry.dependencies.codescry]
-git = "https://github.com/avishek-sen-gupta/codescry.git"
-branch = "main"
-
-[tool.poetry.dependencies.red-dragon]
-git = "https://github.com/avishek-sen-gupta/red-dragon.git"
-branch = "main"
+[tool.poetry.group.ml.dependencies]
+codescry = {git = "https://github.com/avishek-sen-gupta/codescry.git", branch = "main"}
+red-dragon = {git = "https://github.com/avishek-sen-gupta/red-dragon.git", branch = "main"}
 
 [tool.poetry.scripts]
 retui = "retui.cli:main"
