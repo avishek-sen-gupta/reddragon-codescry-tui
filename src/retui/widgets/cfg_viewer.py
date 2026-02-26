@@ -8,15 +8,22 @@ from typing import Any
 
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.widgets import RichLog
+from textual.widgets import RichLog, Static
 
 
 class CFGViewer(Widget):
-    """Displays CFG as colored text with optional external SVG rendering."""
+    """Displays CFG as colored text with optional external PNG rendering."""
 
     DEFAULT_CSS = """
     CFGViewer {
         height: 1fr;
+    }
+    #cfg-status {
+        height: 1;
+        dock: bottom;
+        background: #414868;
+        color: #565f89;
+        padding: 0 1;
     }
     """
 
@@ -27,6 +34,10 @@ class CFGViewer(Widget):
 
     def compose(self) -> ComposeResult:
         yield RichLog(id="cfg-display", highlight=False, markup=True)
+        yield Static(
+            "[italic]Press 'o' to open CFG as rendered PNG in external viewer[/]",
+            id="cfg-status",
+        )
 
     def display_cfg(
         self,
@@ -41,13 +52,10 @@ class CFGViewer(Widget):
 
         if not cfg or not cfg.blocks:
             display.write("[#565f89]No CFG available[/]")
+            self._set_status("[#565f89]No CFG data[/]")
             return
 
         self._render_text(display, cfg)
-        display.write("")
-        display.write(
-            "[#565f89 italic]Press 'o' to open CFG as rendered SVG in external viewer[/]"
-        )
 
     def _render_text(self, display: RichLog, cfg: Any) -> None:
         """Render CFG as colored text with block structure and edges."""
@@ -119,21 +127,26 @@ class CFGViewer(Widget):
             return "bold #ff9e64"
         return "#c0caf5"
 
+    def _set_status(self, message: str) -> None:
+        """Update the docked status bar text."""
+        self.query_one("#cfg-status", Static).update(message)
+
     def open_external(self) -> None:
         """Render Mermaid to PNG and open in system viewer."""
         if not self._mermaid_source:
-            display = self.query_one("#cfg-display", RichLog)
-            display.write("[#f7768e]No CFG data available to render[/]")
+            self._set_status("[#f7768e]No CFG data available to render[/]")
             return
         from retui.rendering.cfg_image import mermaid_to_png, open_external
 
-        display = self.query_one("#cfg-display", RichLog)
         try:
-            display.write("[#2ac3de italic]Rendering CFG to PNG...[/]")
+            self._set_status("[#2ac3de italic]Rendering CFG to PNG...[/]")
             png_path = mermaid_to_png(self._mermaid_source)
             open_external(png_path)
+            self._set_status(
+                "[italic]Press 'o' to open CFG as rendered PNG in external viewer[/]"
+            )
         except Exception as e:
-            display.write(f"[#e0af68]PNG rendering failed ({e}), opening raw Mermaid...[/]")
+            self._set_status(f"[#e0af68]PNG rendering failed ({e}), opening raw Mermaid...[/]")
             mmd_path = Path(tempfile.mktemp(suffix=".mmd"))
             mmd_path.write_text(self._mermaid_source, encoding="utf-8")
             open_external(mmd_path)
