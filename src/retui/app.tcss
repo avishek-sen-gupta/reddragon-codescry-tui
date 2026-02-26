@@ -1,0 +1,189 @@
+/* Rev-Eng TUI — Cyberpunk dark theme */
+
+Screen {
+    background: #1a1b26;
+    color: #c0caf5;
+}
+
+.panel {
+    background: #24283b;
+    border: solid #565f89;
+    padding: 0 1;
+}
+
+.panel:focus-within {
+    border: solid #7dcfff;
+}
+
+.panel-title {
+    height: 1;
+    padding: 0;
+    margin: 0;
+}
+
+/* Dashboard layout */
+#dashboard-main {
+    height: 1fr;
+}
+
+#repo-list-panel {
+    width: 2fr;
+}
+
+#summary-panel {
+    width: 1fr;
+}
+
+/* Repo screen layout */
+#repo-main {
+    height: 1fr;
+}
+
+#file-tree-panel {
+    width: 1fr;
+    min-width: 20;
+}
+
+#repo-right {
+    width: 3fr;
+}
+
+#symbols-panel {
+    height: 1fr;
+}
+
+#integrations-panel {
+    height: 1fr;
+}
+
+/* File screen layout */
+#file-main {
+    height: 1fr;
+}
+
+#source-panel {
+    width: 2fr;
+}
+
+#file-right {
+    width: 1fr;
+}
+
+#file-symbols-panel {
+    height: 1fr;
+}
+
+#file-integrations-panel {
+    height: 1fr;
+}
+
+/* Function screen layout */
+#function-main {
+    height: 1fr;
+}
+
+#analysis-panel {
+    width: 2fr;
+}
+
+#chat-pane {
+    width: 1fr;
+    min-width: 40;
+    background: #24283b;
+    border-left: solid #565f89;
+}
+
+#chat-pane:focus-within {
+    border-left: solid #7dcfff;
+}
+
+#chat-messages {
+    height: 1fr;
+}
+
+#chat-input {
+    background: #414868;
+    border: solid #565f89;
+    color: #c0caf5;
+    height: 3;
+}
+
+#chat-input:focus {
+    border: solid #7dcfff;
+}
+
+/* DataTable styling */
+DataTable {
+    background: #1a1b26;
+}
+
+DataTable > .datatable--header {
+    background: #414868;
+    color: #7dcfff;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: #7dcfff;
+    color: #1a1b26;
+}
+
+DataTable > .datatable--even-row {
+    background: #24283b;
+}
+
+/* Tree styling */
+Tree {
+    background: #1a1b26;
+    padding: 0 1;
+}
+
+Tree > .tree--cursor {
+    background: #414868;
+    color: #7dcfff;
+}
+
+/* Tabbed content */
+TabbedContent > ContentSwitcher {
+    background: #1a1b26;
+}
+
+Tab.-active {
+    color: #7dcfff;
+    text-style: bold underline;
+}
+
+Tab {
+    color: #565f89;
+}
+
+/* RichLog */
+RichLog {
+    background: #1a1b26;
+    padding: 0 1;
+}
+
+/* Status bar */
+StatusBar {
+    dock: bottom;
+    height: 1;
+    background: #414868;
+    color: #c0caf5;
+    padding: 0 1;
+}
+
+/* Semantic classes */
+.confidence-high { color: #9ece6a; }
+.confidence-medium { color: #e0af68; }
+.confidence-low { color: #f7768e; }
+.direction-inward { color: #9ece6a; }
+.direction-outward { color: #f7768e; }
+.direction-ambiguous { color: #e0af68; }
+.symbolic-value { color: #ff9e64; }
+.opcode-value { color: #7dcfff; }
+.opcode-control { color: #f7768e; }
+.opcode-store { color: #9ece6a; }
+.opcode-call { color: #e0af68; }
+.opcode-special { color: #ff9e64; }
+.register { color: #2ac3de; text-style: dim; }
+.loading { color: #2ac3de; text-style: italic; }

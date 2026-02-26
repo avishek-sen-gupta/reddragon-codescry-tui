@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "rev-eng-tui"
+version = "0.1.0"
+description = "Top-down, read-only, multi-repo reverse engineering TUI"
+authors = ["Aniket Gupta"]
+license = "MIT"
+packages = [{include = "retui", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+textual = ">=0.50"
+pydantic = ">=2.12"
+anthropic = ">=0.84"
+cairosvg = ">=2.7"
+rich-pixels = ">=3.0"
+python-dotenv = "^1.2.1"
+sentence-transformers = "^5.2.3"
+
+[tool.poetry.dependencies.codescry]
+path = "../codescry"
+develop = true
+
+[tool.poetry.dependencies.red-dragon]
+path = "../red-dragon"
+develop = true
+
+[tool.poetry.scripts]
+retui = "retui.cli:main"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+pytest-asyncio = ">=0.23"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

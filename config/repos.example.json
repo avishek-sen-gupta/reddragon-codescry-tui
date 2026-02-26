@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "repos": [
+    {
+      "name": "my-service",
+      "path": "/code/svc",
+      "languages": ["Java"],
+      "auto_survey": true
+    },
+    {
+      "name": "frontend-app",
+      "path": "/code/frontend",
+      "languages": ["TypeScript", "JavaScript"],
+      "auto_survey": false
+    }
+  ],
+  "session_dir": "~/.rev-eng-tui/sessions",
+  "llm": {
+    "provider": "claude",
+    "model": "claude-sonnet-4-20250514",
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "neo4j": {
+    "enabled": false,
+    "uri": "bolt://localhost:7687",
+    "user": "neo4j",
+    "password_env": "NEO4J_PASSWORD"
+  }
+}
