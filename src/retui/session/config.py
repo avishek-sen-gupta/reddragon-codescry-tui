@@ -18,10 +18,9 @@ class RepoConfig(BaseModel):
 
 
 class LLMConfig(BaseModel):
-    """LLM provider settings."""
+    """LLM provider settings (uses LiteLLM provider/model format)."""
 
-    provider: str = "claude"
-    model: str = "claude-sonnet-4-20250514"
+    model: str = "anthropic/claude-sonnet-4-20250514"
     api_key_env: str = "ANTHROPIC_API_KEY"
 
 

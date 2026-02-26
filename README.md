@@ -103,11 +103,17 @@ poetry run retui --config config/repos.json
     {"name": "my-service", "path": "/code/svc", "languages": ["Java"], "auto_survey": true}
   ],
   "session_dir": "~/.rev-eng-tui/sessions",
-  "llm": {"provider": "claude", "model": "claude-sonnet-4-20250514", "api_key_env": "ANTHROPIC_API_KEY"},
+  "llm": {"model": "anthropic/claude-sonnet-4-20250514", "api_key_env": "ANTHROPIC_API_KEY"},
   "embedding": {"enabled": true, "model": "BAAI/bge-base-en-v1.5", "threshold": 0.62},
   "neo4j": {"enabled": false}
 }
 ```
+
+The `llm.model` field uses [LiteLLM's provider/model format](https://docs.litellm.ai/docs/providers), enabling any supported provider:
+- `anthropic/claude-sonnet-4-20250514` (set `ANTHROPIC_API_KEY`)
+- `openai/gpt-4o` (set `OPENAI_API_KEY`)
+- `gemini/gemini-2.0-flash` (set `GEMINI_API_KEY`)
+- `ollama/llama3` (local, no API key needed)
 
 ## Keybindings
 
@@ -145,7 +151,7 @@ Survey results, function analysis, chat history, and navigation state are persis
 - **[Codescry](https://github.com/avishek-sen-gupta/codescry)**: Repo surveying, CTags, integration detection, BGE embedding concretisation
 - **[Red Dragon](https://github.com/avishek-sen-gupta/red-dragon)**: Tree-sitter parsing, IR lowering, CFG/Mermaid generation, dataflow analysis, symbolic execution
 - **[Textual](https://textual.textualize.io/)**: TUI framework
-- **[Anthropic](https://docs.anthropic.com/)**: Claude API for LLM chat
+- **[LiteLLM](https://docs.litellm.ai/)**: Multi-provider LLM API (supports Anthropic, OpenAI, Gemini, Ollama, and more)
 - **[sentence-transformers](https://www.sbert.net/)**: BGE embedding model
 - **[Pydantic](https://docs.pydantic.dev/)**: Configuration models
 

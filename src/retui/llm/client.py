@@ -1,31 +1,42 @@
-"""Claude API wrapper using the anthropic SDK."""
+"""LLM API wrapper using LiteLLM for multi-provider support."""
 
 from __future__ import annotations
 
-import os
-from typing import Generator
+import logging
+from typing import Callable, Generator
 
 from retui.session.config import LLMConfig
 
+logger = logging.getLogger(__name__)
+
+
+def _default_completion(**kwargs):
+    """Default completion function using litellm."""
+    import litellm
+
+    return litellm.completion(**kwargs)
+
 
 class LLMClient:
-    """Wraps anthropic.Anthropic for Claude API calls."""
+    """Wraps LiteLLM completion for multi-provider LLM calls."""
 
-    def __init__(self, config: LLMConfig) -> None:
+    def __init__(
+        self,
+        config: LLMConfig,
+        completion_fn: Callable = _default_completion,
+    ) -> None:
         self.config = config
-        self._client = None
+        self._completion_fn = completion_fn
 
-    def _get_client(self):
-        if self._client is None:
-            import anthropic
-
-            api_key = os.environ.get(self.config.api_key_env)
-            if not api_key:
-                raise RuntimeError(
-                    f"API key not found. Set {self.config.api_key_env} environment variable."
-                )
-            self._client = anthropic.Anthropic(api_key=api_key)
-        return self._client
+    def _build_messages(
+        self,
+        messages: list[dict[str, str]],
+        system_prompt: str,
+    ) -> list[dict[str, str]]:
+        """Prepend system prompt as a system message if provided."""
+        if not system_prompt:
+            return messages
+        return [{"role": "system", "content": system_prompt}] + messages
 
     def chat(
         self,
@@ -34,18 +45,17 @@ class LLMClient:
         max_tokens: int = 2048,
     ) -> str:
         """Send a chat request and return the assistant's response."""
-        client = self._get_client()
+        full_messages = self._build_messages(messages, system_prompt)
 
-        kwargs = {
-            "model": self.config.model,
-            "max_tokens": max_tokens,
-            "messages": messages,
-        }
-        if system_prompt:
-            kwargs["system"] = system_prompt
+        logger.info("Sending chat request to model=%s", self.config.model)
+        response = self._completion_fn(
+            model=self.config.model,
+            max_tokens=max_tokens,
+            messages=full_messages,
+        )
 
-        response = client.messages.create(**kwargs)
-        return response.content[0].text if response.content else ""
+        content = response.choices[0].message.content if response.choices else ""
+        return content or ""
 
     def chat_stream(
         self,
@@ -54,16 +64,17 @@ class LLMClient:
         max_tokens: int = 2048,
     ) -> Generator[str, None, None]:
         """Stream a chat response, yielding text chunks."""
-        client = self._get_client()
+        full_messages = self._build_messages(messages, system_prompt)
 
-        kwargs = {
-            "model": self.config.model,
-            "max_tokens": max_tokens,
-            "messages": messages,
-        }
-        if system_prompt:
-            kwargs["system"] = system_prompt
+        logger.info("Starting streaming chat request to model=%s", self.config.model)
+        response = self._completion_fn(
+            model=self.config.model,
+            max_tokens=max_tokens,
+            messages=full_messages,
+            stream=True,
+        )
 
-        with client.messages.stream(**kwargs) as stream:
-            for text in stream.text_stream:
-                yield text
+        for chunk in response:
+            delta_content = chunk.choices[0].delta.content if chunk.choices else ""
+            if delta_content:
+                yield delta_content

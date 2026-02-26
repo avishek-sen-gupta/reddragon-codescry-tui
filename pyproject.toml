@@ -10,7 +10,7 @@ packages = [{include = "retui", from = "src"}]
 python = "^3.13"
 textual = ">=0.50"
 pydantic = ">=2.12"
-anthropic = ">=0.84"
+litellm = ">=1.30"
 cairosvg = ">=2.7"
 rich-pixels = ">=3.0"
 python-dotenv = "^1.2.1"

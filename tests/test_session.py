@@ -28,8 +28,7 @@ def sample_config_path(tmp_path: Path) -> Path:
         ],
         "session_dir": str(tmp_path / "sessions"),
         "llm": {
-            "provider": "claude",
-            "model": "claude-sonnet-4-20250514",
+            "model": "anthropic/claude-sonnet-4-20250514",
             "api_key_env": "ANTHROPIC_API_KEY",
         },
     }
@@ -50,8 +49,7 @@ class TestAppConfig:
 
     def test_llm_config(self, sample_config_path: Path) -> None:
         config = AppConfig.load(sample_config_path)
-        assert config.llm.provider == "claude"
-        assert config.llm.model == "claude-sonnet-4-20250514"
+        assert config.llm.model == "anthropic/claude-sonnet-4-20250514"
 
     def test_session_path(self, sample_config_path: Path, tmp_path: Path) -> None:
         config = AppConfig.load(sample_config_path)
@@ -61,7 +59,7 @@ class TestAppConfig:
         config = AppConfig()
         assert config.version == 1
         assert config.repos == []
-        assert config.llm.provider == "claude"
+        assert config.llm.model == "anthropic/claude-sonnet-4-20250514"
         assert config.neo4j.enabled is False
 
 
