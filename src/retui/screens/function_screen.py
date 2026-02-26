@@ -86,18 +86,18 @@ class FunctionScreen(Screen):
 
     @work(thread=True, description="Analyzing function...")
     def _run_analysis(self) -> None:
-        """Extract function source and run red-dragon analysis."""
-        source = self._extract_function_source()
-        if not source:
-            self.app.call_from_thread(self._show_error, "Could not extract function source.")
-            return
-
+        """Extract function source via tree-sitter and run red-dragon analysis."""
         language = self._detect_language()
         func_name = self.symbol_info.get("name", "unknown")
         # Strip class scope prefix (e.g. "ClassName.methodName" → "methodName")
         # Red Dragon IR labels use bare method names
         if "." in func_name:
             func_name = func_name.rsplit(".", 1)[-1]
+
+        source = self._extract_function_source(func_name, language)
+        if not source:
+            self.app.call_from_thread(self._show_error, "Could not extract function source.")
+            return
 
         self.analysis = self.facade.analyze_function(
             source=source,
@@ -106,8 +106,8 @@ class FunctionScreen(Screen):
         )
         self.app.call_from_thread(self._populate_tabs)
 
-    def _extract_function_source(self) -> str:
-        """Read function source from file using symbol line info."""
+    def _extract_function_source(self, func_name: str, language: str) -> str:
+        """Extract function source using Red Dragon's tree-sitter AST extraction."""
         repo_root = Path(self.repo.path).expanduser().resolve()
         full_path = repo_root / self.file_path
 
@@ -115,34 +115,20 @@ class FunctionScreen(Screen):
             return ""
 
         try:
-            lines = full_path.read_text(encoding="utf-8", errors="replace").splitlines()
+            file_source = full_path.read_text(encoding="utf-8", errors="replace")
         except Exception as e:
             self.app.call_from_thread(self._show_error, f"Could not read {full_path}: {e}")
             return ""
 
-        start_line = int(self.symbol_info.get("line", "1")) - 1
-
-        # Try to find the end of the function (use end if available, else heuristic)
-        # For now, take a reasonable chunk (up to next function or 200 lines)
-        end_line = min(start_line + 200, len(lines))
-
-        # Simple heuristic: look for next function/class definition at same or lower indent
-        if start_line < len(lines):
-            base_indent = len(lines[start_line]) - len(lines[start_line].lstrip())
-            for i in range(start_line + 1, min(start_line + 500, len(lines))):
-                line = lines[i]
-                if line.strip() == "":
-                    continue
-                current_indent = len(line) - len(line.lstrip())
-                # Check for def/function/class at same or lower indent
-                stripped = line.lstrip()
-                if current_indent <= base_indent and any(
-                    stripped.startswith(kw) for kw in ["def ", "class ", "function ", "public ", "private ", "protected ", "static ", "fn "]
-                ):
-                    end_line = i
-                    break
-
-        return "\n".join(lines[start_line:end_line])
+        try:
+            from interpreter.api import extract_function_source
+            return extract_function_source(file_source, func_name, language)
+        except ValueError as e:
+            self.app.call_from_thread(self._show_error, str(e))
+            return ""
+        except Exception as e:
+            self.app.call_from_thread(self._show_error, f"Source extraction failed: {e}")
+            return ""
 
     def _detect_language(self) -> str:
         """Detect language from symbol info or file extension."""
