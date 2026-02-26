@@ -6,13 +6,7 @@ A top-down, read-only, multi-repo reverse engineering terminal UI that integrate
 
 ## Demo
 
-<!-- Replace with your recorded video. asciinema or mp4/gif hosted on GitHub. -->
-<!-- Example with asciinema: -->
-<!-- [![asciicast](https://asciinema.org/a/YOUR_ID.svg)](https://asciinema.org/a/YOUR_ID) -->
-<!-- Example with mp4/gif: -->
-<!-- ![Demo](docs/demo.gif) -->
-
-> **TODO**: Add a demo video walkthrough. See [Recording a demo](#recording-a-demo) below.
+![Demo](docs/demo.gif)
 
 ## Screenshots
 
