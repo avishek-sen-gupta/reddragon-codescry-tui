@@ -62,8 +62,9 @@ class DataflowViewer(Widget):
             self.query_one("#df-mode-label", Static).update(
                 f"[italic]Press 'd' to toggle — viewing [bold #7dcfff]{mode}[/bold #7dcfff][/]"
             )
-        except Exception:
-            pass
+        except Exception as e:
+            graph = self.query_one("#df-graph", RichLog)
+            graph.write(f"[#f7768e]Error toggling view: {e}[/]")
 
     def toggle_view(self) -> None:
         self.show_graph = not self.show_graph

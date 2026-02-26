@@ -116,7 +116,8 @@ class FunctionScreen(Screen):
 
         try:
             lines = full_path.read_text(encoding="utf-8", errors="replace").splitlines()
-        except Exception:
+        except Exception as e:
+            self.app.call_from_thread(self._show_error, f"Could not read {full_path}: {e}")
             return ""
 
         start_line = int(self.symbol_info.get("line", "1")) - 1
@@ -211,12 +212,14 @@ class FunctionScreen(Screen):
         try:
             cfg_viewer = self.query_one("#cfg-viewer", CFGViewer)
             cfg_viewer.open_external()
-        except Exception:
-            pass
+        except Exception as e:
+            cfg_viewer = self.query_one("#cfg-viewer", CFGViewer)
+            display = cfg_viewer.query_one("#cfg-display")
+            display.write(f"\n[#f7768e]Error opening CFG: {e}[/]")
 
     def action_toggle_dataflow(self) -> None:
         try:
             df_viewer = self.query_one("#dataflow-viewer", DataflowViewer)
             df_viewer.toggle_view()
-        except Exception:
-            pass
+        except Exception as e:
+            self._show_error(f"Could not toggle dataflow view: {e}")

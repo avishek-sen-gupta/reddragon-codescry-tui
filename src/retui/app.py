@@ -34,6 +34,6 @@ class RevEngApp(App):
         try:
             screen_name = type(self.screen).__name__
             meta.last_screen = screen_name
-        except Exception:
-            pass
+        except Exception as e:
+            self.log.warning(f"Could not read current screen on exit: {e}")
         self._session.save_meta(meta)
