@@ -21,7 +21,12 @@ class SessionManager:
 
     def ensure_dirs(self) -> None:
         """Create session directories if they don't exist."""
-        for d in [self.base_dir, self.survey_cache_dir, self.analysis_cache_dir, self.chat_history_dir]:
+        for d in [
+            self.base_dir,
+            self.survey_cache_dir,
+            self.analysis_cache_dir,
+            self.chat_history_dir,
+        ]:
             d.mkdir(parents=True, exist_ok=True)
 
     def save_meta(self, meta: SessionMeta) -> None:

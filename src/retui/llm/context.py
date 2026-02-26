@@ -33,11 +33,23 @@ def build_system_prompt(
         if file_path:
             signals = bundle.signals_for_file(file_path)
             if signals:
-                parts.append(f"\nIntegration signals in this file ({len(signals)} found):")
+                parts.append(
+                    f"\nIntegration signals in this file ({len(signals)} found):"
+                )
                 for sig in signals[:10]:
-                    itype = sig.integration_type.value if hasattr(sig.integration_type, "value") else str(sig.integration_type)
-                    direction = sig.direction.value if hasattr(sig.direction, "value") else str(sig.direction)
-                    parts.append(f"  - Line {sig.match.line_number}: {itype} ({direction})")
+                    itype = (
+                        sig.integration_type.value
+                        if hasattr(sig.integration_type, "value")
+                        else str(sig.integration_type)
+                    )
+                    direction = (
+                        sig.direction.value
+                        if hasattr(sig.direction, "value")
+                        else str(sig.direction)
+                    )
+                    parts.append(
+                        f"  - Line {sig.match.line_number}: {itype} ({direction})"
+                    )
 
     if analysis:
         parts.append(f"\nCurrently analyzing function: {analysis.function_name}")
@@ -59,7 +71,9 @@ def build_system_prompt(
                 parts.append(f"  Path conditions: {analysis.vm_state.path_conditions}")
 
         if analysis.dataflow and hasattr(analysis.dataflow, "def_use_chains"):
-            parts.append(f"\nDataflow chains ({len(analysis.dataflow.def_use_chains)} links):")
+            parts.append(
+                f"\nDataflow chains ({len(analysis.dataflow.def_use_chains)} links):"
+            )
             for link in analysis.dataflow.def_use_chains[:15]:
                 parts.append(
                     f"  {link.definition.variable}@{link.definition.block_label} -> "

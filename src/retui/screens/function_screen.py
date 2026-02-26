@@ -80,7 +80,11 @@ class FunctionScreen(Screen):
 
     def _update_breadcrumb(self) -> None:
         bar = self.query_one(StatusBar)
-        short_file = self.file_path.rsplit("/", 1)[-1] if "/" in self.file_path else self.file_path
+        short_file = (
+            self.file_path.rsplit("/", 1)[-1]
+            if "/" in self.file_path
+            else self.file_path
+        )
         func_name = self.symbol_info.get("name", "?")
         bar.breadcrumb = ["Dashboard", self.repo.name, short_file, f"{func_name}()"]
 
@@ -96,7 +100,9 @@ class FunctionScreen(Screen):
 
         source = self._extract_function_source(func_name, language)
         if not source:
-            self.app.call_from_thread(self._show_error, "Could not extract function source.")
+            self.app.call_from_thread(
+                self._show_error, "Could not extract function source."
+            )
             return
 
         self.analysis = self.facade.analyze_function(
@@ -117,17 +123,22 @@ class FunctionScreen(Screen):
         try:
             file_source = full_path.read_text(encoding="utf-8", errors="replace")
         except Exception as e:
-            self.app.call_from_thread(self._show_error, f"Could not read {full_path}: {e}")
+            self.app.call_from_thread(
+                self._show_error, f"Could not read {full_path}: {e}"
+            )
             return ""
 
         try:
             from interpreter.api import extract_function_source
+
             return extract_function_source(file_source, func_name, language)
         except ValueError as e:
             self.app.call_from_thread(self._show_error, str(e))
             return ""
         except Exception as e:
-            self.app.call_from_thread(self._show_error, f"Source extraction failed: {e}")
+            self.app.call_from_thread(
+                self._show_error, f"Source extraction failed: {e}"
+            )
             return ""
 
     def _detect_language(self) -> str:
@@ -135,19 +146,37 @@ class FunctionScreen(Screen):
         lang = self.symbol_info.get("language", "").lower()
         if lang:
             lang_map = {
-                "java": "java", "python": "python", "javascript": "javascript",
-                "typescript": "typescript", "go": "go", "rust": "rust",
-                "ruby": "ruby", "php": "php", "c": "c", "c++": "cpp",
-                "c#": "csharp", "kotlin": "kotlin", "scala": "scala",
+                "java": "java",
+                "python": "python",
+                "javascript": "javascript",
+                "typescript": "typescript",
+                "go": "go",
+                "rust": "rust",
+                "ruby": "ruby",
+                "php": "php",
+                "c": "c",
+                "c++": "cpp",
+                "c#": "csharp",
+                "kotlin": "kotlin",
+                "scala": "scala",
             }
             return lang_map.get(lang, lang)
 
         ext = self.file_path.rsplit(".", 1)[-1] if "." in self.file_path else ""
         ext_map = {
-            "py": "python", "java": "java", "js": "javascript",
-            "ts": "typescript", "go": "go", "rs": "rust",
-            "rb": "ruby", "php": "php", "c": "c", "cpp": "cpp",
-            "cs": "csharp", "kt": "kotlin", "scala": "scala",
+            "py": "python",
+            "java": "java",
+            "js": "javascript",
+            "ts": "typescript",
+            "go": "go",
+            "rs": "rust",
+            "rb": "ruby",
+            "php": "php",
+            "c": "c",
+            "cpp": "cpp",
+            "cs": "csharp",
+            "kt": "kotlin",
+            "scala": "scala",
         }
         return ext_map.get(ext, "python")
 

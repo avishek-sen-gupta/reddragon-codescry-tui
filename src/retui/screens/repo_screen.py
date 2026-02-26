@@ -47,7 +47,11 @@ class RepoScreen(Screen):
                     yield Static("[bold #7dcfff]Symbols[/]", classes="panel-title")
                     yield SymbolTable(id="symbol-table")
                 with Vertical(id="integrations-panel", classes="panel"):
-                    yield Static("[bold #7dcfff]Integration Signals[/]", id="integrations-title", classes="panel-title")
+                    yield Static(
+                        "[bold #7dcfff]Integration Signals[/]",
+                        id="integrations-title",
+                        classes="panel-title",
+                    )
                     yield IntegrationTable(id="integration-table")
         yield StatusBar()
 

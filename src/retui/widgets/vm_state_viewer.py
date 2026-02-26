@@ -100,8 +100,14 @@ class VMStateViewer(Widget):
     def _format_value(self, value: Any) -> Text:
         """Format a value with appropriate coloring."""
         text = Text()
-        if hasattr(value, "__symbolic__") or (isinstance(value, dict) and value.get("__symbolic__")):
-            name = value.get("name", str(value)) if isinstance(value, dict) else getattr(value, "name", str(value))
+        if hasattr(value, "__symbolic__") or (
+            isinstance(value, dict) and value.get("__symbolic__")
+        ):
+            name = (
+                value.get("name", str(value))
+                if isinstance(value, dict)
+                else getattr(value, "name", str(value))
+            )
             text.append(str(name), style="#ff9e64")
         elif isinstance(value, str):
             text.append(f'"{value}"', style="#9ece6a")

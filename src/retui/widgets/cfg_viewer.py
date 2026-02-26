@@ -78,7 +78,11 @@ class CFGViewer(Widget):
             last = block.instructions[-1] if block.instructions else None
             opcode = ""
             if last:
-                opcode = last.opcode.value if hasattr(last.opcode, "value") else str(last.opcode)
+                opcode = (
+                    last.opcode.value
+                    if hasattr(last.opcode, "value")
+                    else str(last.opcode)
+                )
 
             if opcode == "branch_if" and len(block.successors) == 2:
                 header.append("  succs=[", style="#565f89")
@@ -97,13 +101,19 @@ class CFGViewer(Widget):
             for inst in block.instructions:
                 line = Text()
                 line.append("  ", style="")
-                opcode_val = inst.opcode.value if hasattr(inst.opcode, "value") else str(inst.opcode)
+                opcode_val = (
+                    inst.opcode.value
+                    if hasattr(inst.opcode, "value")
+                    else str(inst.opcode)
+                )
                 if inst.result_reg:
                     line.append(f"{inst.result_reg}", style="#2ac3de dim")
                     line.append(" = ", style="#565f89")
                 line.append(opcode_val, style=self._opcode_style(opcode_val))
                 if inst.operands:
-                    line.append(" " + " ".join(str(o) for o in inst.operands), style="#c0caf5")
+                    line.append(
+                        " " + " ".join(str(o) for o in inst.operands), style="#c0caf5"
+                    )
                 if inst.label:
                     line.append(f" {inst.label}", style="#bb9af7")
                 display.write(line)
@@ -113,7 +123,14 @@ class CFGViewer(Widget):
     def _opcode_style(self, opcode: str) -> str:
         """Return a Rich style string for an opcode."""
         op = opcode.lower()
-        if op in ("const", "load_var", "load_field", "load_index", "new_object", "new_array"):
+        if op in (
+            "const",
+            "load_var",
+            "load_field",
+            "load_index",
+            "new_object",
+            "new_array",
+        ):
             return "bold #7dcfff"
         if op in ("binop", "unop"):
             return "bold #bb9af7"
@@ -146,7 +163,9 @@ class CFGViewer(Widget):
                 "[italic]Press 'o' to open CFG as rendered PNG in external viewer[/]"
             )
         except Exception as e:
-            self._set_status(f"[#e0af68]PNG rendering failed ({e}), opening raw Mermaid...[/]")
+            self._set_status(
+                f"[#e0af68]PNG rendering failed ({e}), opening raw Mermaid...[/]"
+            )
             mmd_path = Path(tempfile.mktemp(suffix=".mmd"))
             mmd_path.write_text(self._mermaid_source, encoding="utf-8")
             open_external(mmd_path)

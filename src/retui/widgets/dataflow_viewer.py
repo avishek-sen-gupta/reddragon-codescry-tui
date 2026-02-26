@@ -48,7 +48,14 @@ class DataflowViewer(Widget):
 
     def on_mount(self) -> None:
         table = self.query_one("#df-table", DataTable)
-        table.add_columns("Def Variable", "Def Block", "Def Idx", "Use Variable", "Use Block", "Use Idx")
+        table.add_columns(
+            "Def Variable",
+            "Def Block",
+            "Def Idx",
+            "Use Variable",
+            "Use Block",
+            "Use Idx",
+        )
         self._sync_visibility()
 
     def watch_show_graph(self, value: bool) -> None:
@@ -111,7 +118,11 @@ class DataflowViewer(Widget):
                 defn = links[0].definition
                 opcode = ""
                 if hasattr(defn.instruction, "opcode"):
-                    opcode = defn.instruction.opcode.value if hasattr(defn.instruction.opcode, "value") else str(defn.instruction.opcode)
+                    opcode = (
+                        defn.instruction.opcode.value
+                        if hasattr(defn.instruction.opcode, "value")
+                        else str(defn.instruction.opcode)
+                    )
 
                 # Definition header
                 header = Text()
@@ -128,7 +139,11 @@ class DataflowViewer(Widget):
                     use = link.use
                     use_opcode = ""
                     if hasattr(use.instruction, "opcode"):
-                        use_opcode = use.instruction.opcode.value if hasattr(use.instruction.opcode, "value") else str(use.instruction.opcode)
+                        use_opcode = (
+                            use.instruction.opcode.value
+                            if hasattr(use.instruction.opcode, "value")
+                            else str(use.instruction.opcode)
+                        )
 
                     arrow = Text()
                     arrow.append("    └──▸ ", style="#7dcfff")
@@ -167,8 +182,16 @@ class DataflowViewer(Widget):
             graph.write("")
 
             for block_label, facts in result.block_facts.items():
-                reach_in_vars = sorted({d.variable for d in facts.reach_in}) if facts.reach_in else []
-                reach_out_vars = sorted({d.variable for d in facts.reach_out}) if facts.reach_out else []
+                reach_in_vars = (
+                    sorted({d.variable for d in facts.reach_in})
+                    if facts.reach_in
+                    else []
+                )
+                reach_out_vars = (
+                    sorted({d.variable for d in facts.reach_out})
+                    if facts.reach_out
+                    else []
+                )
 
                 if not reach_in_vars and not reach_out_vars:
                     continue

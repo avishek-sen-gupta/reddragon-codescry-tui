@@ -33,7 +33,9 @@ class IntegrationTable(DataTable):
         super().__init__(cursor_type="row", **kwargs)
 
     def on_mount(self) -> None:
-        self.add_columns("File", "Line", "Type", "Confidence", "Direction", "Matched Line")
+        self.add_columns(
+            "File", "Line", "Type", "Confidence", "Direction", "Matched Line"
+        )
 
     def populate(self, signals: list[Any]) -> None:
         """Fill the table with IntegrationSignal objects."""
@@ -45,9 +47,21 @@ class IntegrationTable(DataTable):
             self.add_row(
                 short_path,
                 str(signal.match.line_number),
-                signal.integration_type.value if hasattr(signal.integration_type, "value") else str(signal.integration_type),
-                _confidence_markup(signal.confidence.value if hasattr(signal.confidence, "value") else str(signal.confidence)),
-                _direction_markup(signal.direction.value if hasattr(signal.direction, "value") else str(signal.direction)),
+                (
+                    signal.integration_type.value
+                    if hasattr(signal.integration_type, "value")
+                    else str(signal.integration_type)
+                ),
+                _confidence_markup(
+                    signal.confidence.value
+                    if hasattr(signal.confidence, "value")
+                    else str(signal.confidence)
+                ),
+                _direction_markup(
+                    signal.direction.value
+                    if hasattr(signal.direction, "value")
+                    else str(signal.direction)
+                ),
                 signal.match.line_content.strip() if signal.match.line_content else "",
                 key=f"{file_path}:{signal.match.line_number}",
             )

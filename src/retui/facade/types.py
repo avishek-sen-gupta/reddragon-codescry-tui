@@ -47,24 +47,33 @@ class SurveyBundle:
 
     def symbols_for_file(self, file_path: str) -> list[Any]:
         """Filter CTags entries to a specific file (relative path match)."""
-        return [e for e in self.all_symbols if e.path.endswith(file_path) or file_path.endswith(e.path)]
+        return [
+            e
+            for e in self.all_symbols
+            if e.path.endswith(file_path) or file_path.endswith(e.path)
+        ]
 
     def signals_for_file(self, file_path: str) -> list[Any]:
         """Filter integration signals to a specific file."""
         return [
-            s for s in self.all_signals
-            if s.match.file_path.endswith(file_path) or file_path.endswith(s.match.file_path)
+            s
+            for s in self.all_signals
+            if s.match.file_path.endswith(file_path)
+            or file_path.endswith(s.match.file_path)
         ]
 
     def concretised_signals_for_file(self, file_path: str) -> list[Any]:
         """Filter concretised signals to a specific file."""
         return [
-            s for s in self.concretised_signals
+            s
+            for s in self.concretised_signals
             if s.original_signal.match.file_path.endswith(file_path)
             or file_path.endswith(s.original_signal.match.file_path)
         ]
 
-    def embedding_score_for_signal(self, file_path: str, line_number: int) -> dict | None:
+    def embedding_score_for_signal(
+        self, file_path: str, line_number: int
+    ) -> dict | None:
         """Get BGE embedding metadata for a specific signal."""
         return self.embedding_metadata.get((file_path, line_number))
 

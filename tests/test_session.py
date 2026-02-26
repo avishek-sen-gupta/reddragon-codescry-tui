@@ -18,11 +18,20 @@ def sample_config_path(tmp_path: Path) -> Path:
     config = {
         "version": 1,
         "repos": [
-            {"name": "test-repo", "path": "/tmp/test-repo", "languages": ["Python"], "auto_survey": True},
+            {
+                "name": "test-repo",
+                "path": "/tmp/test-repo",
+                "languages": ["Python"],
+                "auto_survey": True,
+            },
             {"name": "other-repo", "path": "/tmp/other", "languages": ["Java"]},
         ],
         "session_dir": str(tmp_path / "sessions"),
-        "llm": {"provider": "claude", "model": "claude-sonnet-4-20250514", "api_key_env": "ANTHROPIC_API_KEY"},
+        "llm": {
+            "provider": "claude",
+            "model": "claude-sonnet-4-20250514",
+            "api_key_env": "ANTHROPIC_API_KEY",
+        },
     }
     p = tmp_path / "repos.json"
     p.write_text(json.dumps(config))
@@ -80,8 +89,12 @@ class TestSessionPersistence:
         config = AppConfig.load(sample_config_path)
         manager = SessionManager(config)
 
-        manager.append_chat_message("test-repo", ChatMessage(role="user", content="Hello"))
-        manager.append_chat_message("test-repo", ChatMessage(role="assistant", content="Hi there"))
+        manager.append_chat_message(
+            "test-repo", ChatMessage(role="user", content="Hello")
+        )
+        manager.append_chat_message(
+            "test-repo", ChatMessage(role="assistant", content="Hi there")
+        )
 
         history = manager.load_chat_history("test-repo")
         assert len(history) == 2
@@ -93,7 +106,9 @@ class TestSessionPersistence:
         config = AppConfig.load(sample_config_path)
         manager = SessionManager(config)
 
-        manager.append_chat_message("test-repo", ChatMessage(role="user", content="Hello"))
+        manager.append_chat_message(
+            "test-repo", ChatMessage(role="user", content="Hello")
+        )
         manager.clear_chat_history("test-repo")
 
         history = manager.load_chat_history("test-repo")

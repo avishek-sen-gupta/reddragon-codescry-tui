@@ -11,7 +11,9 @@ from retui.session.config import AppConfig
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Rev-Eng TUI — reverse engineering explorer")
+    parser = argparse.ArgumentParser(
+        description="Rev-Eng TUI — reverse engineering explorer"
+    )
     parser.add_argument(
         "--config",
         type=str,

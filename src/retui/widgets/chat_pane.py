@@ -62,6 +62,7 @@ class ChatPane(Widget):
     def _get_client(self):
         if self._client is None:
             from retui.llm.client import LLMClient
+
             self._client = LLMClient(self.config.llm)
         return self._client
 

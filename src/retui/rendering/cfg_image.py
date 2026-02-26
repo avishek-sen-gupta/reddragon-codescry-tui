@@ -7,7 +7,9 @@ import tempfile
 from pathlib import Path
 
 
-def mermaid_to_png(mermaid_source: str, output_path: Path | None = None, scale: int = 2) -> Path:
+def mermaid_to_png(
+    mermaid_source: str, output_path: Path | None = None, scale: int = 2
+) -> Path:
     """Render Mermaid source directly to PNG using mmdc via npx."""
     with tempfile.NamedTemporaryFile(suffix=".mmd", mode="w", delete=False) as mmd:
         mmd.write(mermaid_source)
@@ -19,12 +21,19 @@ def mermaid_to_png(mermaid_source: str, output_path: Path | None = None, scale: 
     try:
         result = subprocess.run(
             [
-                "npx", "-y", "@mermaid-js/mermaid-cli",
-                "-i", str(mmd_path),
-                "-o", str(output_path),
-                "-t", "dark",
-                "-b", "#1a1b26",
-                "-s", str(scale),
+                "npx",
+                "-y",
+                "@mermaid-js/mermaid-cli",
+                "-i",
+                str(mmd_path),
+                "-o",
+                str(output_path),
+                "-t",
+                "dark",
+                "-b",
+                "#1a1b26",
+                "-s",
+                str(scale),
             ],
             capture_output=True,
             timeout=60,
@@ -39,6 +48,7 @@ def mermaid_to_png(mermaid_source: str, output_path: Path | None = None, scale: 
 def open_external(path: Path) -> None:
     """Open a file in system default viewer."""
     import sys
+
     if sys.platform == "darwin":
         subprocess.Popen(["open", str(path)])
     elif sys.platform == "linux":

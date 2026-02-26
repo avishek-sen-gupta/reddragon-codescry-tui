@@ -41,14 +41,18 @@ class FileScreen(Screen):
     def compose(self) -> ComposeResult:
         with Horizontal(id="file-main"):
             with Vertical(id="source-panel", classes="panel"):
-                yield Static(f"[bold #7dcfff]{self._short_path()}[/]", classes="panel-title")
+                yield Static(
+                    f"[bold #7dcfff]{self._short_path()}[/]", classes="panel-title"
+                )
                 yield RichLog(id="source-viewer", highlight=True, markup=True)
             with Vertical(id="file-right"):
                 with Vertical(id="file-symbols-panel", classes="panel"):
                     yield Static("[bold #7dcfff]Symbols[/]", classes="panel-title")
                     yield SymbolTable(id="file-symbol-table")
                 with Vertical(id="file-integrations-panel", classes="panel"):
-                    yield Static("[bold #7dcfff]Integration Signals[/]", classes="panel-title")
+                    yield Static(
+                        "[bold #7dcfff]Integration Signals[/]", classes="panel-title"
+                    )
                     yield IntegrationTable(id="file-integration-table")
         yield StatusBar()
 
@@ -58,7 +62,11 @@ class FileScreen(Screen):
         self._load_file()
 
     def _short_path(self) -> str:
-        return self.file_path.rsplit("/", 1)[-1] if "/" in self.file_path else self.file_path
+        return (
+            self.file_path.rsplit("/", 1)[-1]
+            if "/" in self.file_path
+            else self.file_path
+        )
 
     def _update_breadcrumb(self) -> None:
         bar = self.query_one(StatusBar)
@@ -100,12 +108,22 @@ class FileScreen(Screen):
             viewer.write(f"[#f7768e]{source_data['error']}[/]")
         else:
             lang_map = {
-                ".py": "python", ".java": "java", ".js": "javascript",
-                ".ts": "typescript", ".go": "go", ".rs": "rust",
-                ".rb": "ruby", ".php": "php", ".c": "c", ".cpp": "cpp",
-                ".cs": "csharp", ".kt": "kotlin", ".scala": "scala",
+                ".py": "python",
+                ".java": "java",
+                ".js": "javascript",
+                ".ts": "typescript",
+                ".go": "go",
+                ".rs": "rust",
+                ".rb": "ruby",
+                ".php": "php",
+                ".c": "c",
+                ".cpp": "cpp",
+                ".cs": "csharp",
+                ".kt": "kotlin",
+                ".scala": "scala",
             }
             from rich.syntax import Syntax
+
             syntax = Syntax(
                 source_data["content"],
                 lexer=lang_map.get(source_data["ext"], "text"),

@@ -8,7 +8,14 @@ from rich.text import Text
 from textual.widgets import RichLog
 
 # Opcode color categories
-_VALUE_OPCODES = {"CONST", "LOAD_VAR", "LOAD_FIELD", "LOAD_INDEX", "NEW_OBJECT", "NEW_ARRAY"}
+_VALUE_OPCODES = {
+    "CONST",
+    "LOAD_VAR",
+    "LOAD_FIELD",
+    "LOAD_INDEX",
+    "NEW_OBJECT",
+    "NEW_ARRAY",
+}
 _ARITH_OPCODES = {"BINOP", "UNOP"}
 _CONTROL_OPCODES = {"BRANCH", "BRANCH_IF", "RETURN", "THROW"}
 _STORE_OPCODES = {"STORE_VAR", "STORE_FIELD", "STORE_INDEX"}
@@ -40,7 +47,9 @@ class IRViewer(RichLog):
         """Write IR instructions with syntax coloring."""
         self.clear()
         for i, inst in enumerate(instructions):
-            opcode_name = inst.opcode.value if hasattr(inst.opcode, "value") else str(inst.opcode)
+            opcode_name = (
+                inst.opcode.value if hasattr(inst.opcode, "value") else str(inst.opcode)
+            )
             color = _opcode_color(opcode_name)
 
             line = Text()
