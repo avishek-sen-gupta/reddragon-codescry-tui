@@ -30,7 +30,7 @@ class DataflowViewer(Widget):
         height: 1;
         dock: bottom;
         background: #414868;
-        color: #565f89;
+        color: #c0caf5;
         padding: 0 1;
     }
     """

@@ -71,6 +71,7 @@ class FileScreen(Screen):
     def _update_breadcrumb(self) -> None:
         bar = self.query_one(StatusBar)
         bar.breadcrumb = ["Dashboard", self.repo.name, self._short_path()]
+        bar.hints = [("Esc", "Back"), ("Enter", "Open Function"), ("q", "Quit")]
 
     def _show_loading(self) -> None:
         viewer = self.query_one("#source-viewer", RichLog)

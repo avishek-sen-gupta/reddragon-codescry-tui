@@ -54,6 +54,7 @@ class DashboardScreen(Screen):
     def _update_breadcrumb(self) -> None:
         bar = self.query_one(StatusBar)
         bar.breadcrumb = ["Dashboard"]
+        bar.hints = [("Enter", "Open Repo"), ("q", "Quit")]
 
     def _update_summary(self, repo: RepoConfig) -> None:
         self._selected_repo = repo

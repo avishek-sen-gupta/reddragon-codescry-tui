@@ -87,6 +87,12 @@ class FunctionScreen(Screen):
         )
         func_name = self.symbol_info.get("name", "?")
         bar.breadcrumb = ["Dashboard", self.repo.name, short_file, f"{func_name}()"]
+        bar.hints = [
+            ("Esc", "Back"),
+            ("o", "Open CFG"),
+            ("d", "Toggle Dataflow"),
+            ("q", "Quit"),
+        ]
 
     @work(thread=True, description="Analyzing function...")
     def _run_analysis(self) -> None:

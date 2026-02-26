@@ -63,6 +63,7 @@ class RepoScreen(Screen):
     def _update_breadcrumb(self) -> None:
         bar = self.query_one(StatusBar)
         bar.breadcrumb = ["Dashboard", self.repo.name]
+        bar.hints = [("Esc", "Back"), ("Enter", "Open File"), ("q", "Quit")]
 
     def _show_loading(self) -> None:
         tree = self.query_one("#repo-tree", RepoTree)
