@@ -618,9 +618,9 @@ ml = ["anthropic (>=0.42.0)", "ollama (>=0.4.0)"]
 
 [package.source]
 type = "git"
-url = "ssh://git@github.com/avishek-sen-gupta/codescry.git"
+url = "https://github.com/avishek-sen-gupta/codescry.git"
 reference = "main"
-resolved_reference = "acd6a376592cef3d60ca413c3dba8eb98adbc05e"
+resolved_reference = "6e827b352d04db492b0c455f42dc720121f2af5a"
 
 [[package]]
 name = "colorama"
@@ -3087,9 +3087,9 @@ tree-sitter-language-pack = ">=0.13.0,<0.14.0"
 
 [package.source]
 type = "git"
-url = "ssh://git@github.com/avishek-sen-gupta/red-dragon.git"
+url = "https://github.com/avishek-sen-gupta/red-dragon.git"
 reference = "main"
-resolved_reference = "0c0151cf461391ed166ebf62c4adf75032478a88"
+resolved_reference = "f4f63edc406f7c1ccb6cad8f2db03992710fe1b6"
 
 [[package]]
 name = "regex"
@@ -4637,4 +4637,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "856f62a8c124cceab78053fcc6add492a87040301dcaf86dbf4cb1b9bad1e09e"
+content-hash = "73ee1c772288b3e121535e61614b6cb82b31ee0415e2314288f9326661ef95cf"

@@ -17,11 +17,11 @@ python-dotenv = "^1.2.1"
 sentence-transformers = "^5.2.3"
 
 [tool.poetry.dependencies.codescry]
-git = "git@github.com:avishek-sen-gupta/codescry.git"
+git = "https://github.com/avishek-sen-gupta/codescry.git"
 branch = "main"
 
 [tool.poetry.dependencies.red-dragon]
-git = "git@github.com:avishek-sen-gupta/red-dragon.git"
+git = "https://github.com/avishek-sen-gupta/red-dragon.git"
 branch = "main"
 
 [tool.poetry.scripts]

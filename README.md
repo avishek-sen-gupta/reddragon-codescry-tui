@@ -1,8 +1,11 @@
 # Rev-Eng TUI
 
+[![CI](https://github.com/avishek-sen-gupta/reddragon-codescry-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/avishek-sen-gupta/reddragon-codescry-tui/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE.md)
+
 A top-down, read-only, multi-repo reverse engineering terminal UI that integrates [Codescry](https://github.com/avishek-sen-gupta/codescry) (repo surveying, integration detection, symbol resolution, BGE embedding concretisation) and [Red Dragon](https://github.com/avishek-sen-gupta/red-dragon) (symbolic execution, IR lowering, CFG generation, dataflow analysis).
 
-[MIT License](LICENSE.md) | [Philosophy](PHILOSOPHY.md)
+[Philosophy](PHILOSOPHY.md)
 
 ## Demo
 
@@ -70,12 +73,12 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 ### Install
 
 ```bash
-git clone git@github.com:avishek-sen-gupta/reddragon-codescry-tui.git rev-eng-tui
+git clone https://github.com/avishek-sen-gupta/reddragon-codescry-tui.git rev-eng-tui
 cd rev-eng-tui
 poetry install
 ```
 
-Codescry and Red Dragon are pulled automatically from GitHub via SSH as Poetry dependencies.
+Codescry and Red Dragon are pulled automatically from GitHub as Poetry dependencies.
 
 ### Configure
 
