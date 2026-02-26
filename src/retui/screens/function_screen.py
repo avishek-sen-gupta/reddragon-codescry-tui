@@ -94,6 +94,10 @@ class FunctionScreen(Screen):
 
         language = self._detect_language()
         func_name = self.symbol_info.get("name", "unknown")
+        # Strip class scope prefix (e.g. "ClassName.methodName" → "methodName")
+        # Red Dragon IR labels use bare method names
+        if "." in func_name:
+            func_name = func_name.rsplit(".", 1)[-1]
 
         self.analysis = self.facade.analyze_function(
             source=source,
@@ -176,7 +180,10 @@ class FunctionScreen(Screen):
         # CFG tab
         if self.analysis.cfg:
             cfg_viewer = self.query_one("#cfg-viewer", CFGViewer)
-            cfg_viewer.display_cfg(self.analysis.cfg, self.analysis.cfg_dot)
+            cfg_viewer.display_cfg(
+                self.analysis.cfg,
+                self.analysis.cfg_mermaid,
+            )
 
         # VM State tab
         if self.analysis.vm_state:

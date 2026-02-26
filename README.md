@@ -1,6 +1,6 @@
 # Rev-Eng TUI
 
-A top-down, read-only, multi-repo reverse engineering terminal UI that integrates [Codescry](https://github.com/avishek-sen-gupta/codescry) (repo surveying, integration detection, symbol resolution) and [Red Dragon](https://github.com/avishek-sen-gupta/red-dragon) (symbolic execution, IR, dataflow analysis).
+A top-down, read-only, multi-repo reverse engineering terminal UI that integrates [Codescry](https://github.com/avishek-sen-gupta/codescry) (repo surveying, integration detection, symbol resolution, BGE embedding concretisation) and [Red Dragon](https://github.com/avishek-sen-gupta/red-dragon) (symbolic execution, IR lowering, CFG generation, dataflow analysis).
 
 [MIT License](LICENSE.md) | [Philosophy](PHILOSOPHY.md)
 
@@ -24,38 +24,47 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 ### RepoScreen
 - File tree built from CTags symbols
 - Symbol table (name, kind, line, scope, language)
-- Integration signals table with confidence/direction coloring
-- BGE embedding concretisation for signal classification
+- Integration signals table with confidence/direction coloring and matched line content
+- BGE embedding concretisation for signal classification (when enabled)
 
 ### FileScreen
 - Syntax-highlighted source viewer
 - File-scoped symbols and integration signals
 
 ### FunctionScreen
-- **IR tab**: Color-coded three-address code instructions (19 opcodes)
-- **CFG tab**: Text-based control flow graph with block labels, predecessors/successors (`o` opens SVG externally)
+- **IR tab**: Color-coded three-address code instructions with opcode-based styling
+- **CFG tab**: Colored text-based control flow graph with block labels, T/F edge labels for conditionals, entry block highlighting. Press `o` to render Red Dragon's Mermaid CFG as a PNG and open externally
 - **VM State tab**: Heap objects, call stack, path conditions from symbolic execution
 - **Dataflow tab**: Def-use chains and variable dependencies (press `d` to toggle table/graph view)
 - **Chat pane**: LLM-powered contextual Q&A about the code being viewed
 
 ## Setup
 
-```bash
-# Clone alongside codescry and red-dragon
-cd ~/code
-git clone <this-repo> rev-eng-tui
-git clone <codescry-repo> codescry
-git clone <red-dragon-repo> red-dragon
+### Prerequisites
+- Python 3.13+
+- [Poetry](https://python-poetry.org/)
+- [Node.js](https://nodejs.org/) (for Mermaid CLI CFG rendering via `npx`)
 
-# Install
+### Install
+
+```bash
+git clone <this-repo> rev-eng-tui
 cd rev-eng-tui
 poetry install
+```
 
-# Configure
+Codescry and Red Dragon are pulled automatically from GitHub via SSH as Poetry dependencies.
+
+### Configure
+
+```bash
 cp config/repos.example.json config/repos.json
 # Edit repos.json with your repo paths
+```
 
-# Run
+### Run
+
+```bash
 poetry run retui --config config/repos.json
 ```
 
@@ -81,18 +90,41 @@ poetry run retui --config config/repos.json
 | `Enter` | Drill into selected item |
 | `Escape` | Go back one screen |
 | `q` | Quit |
-| `o` | Open CFG as SVG in system viewer (FunctionScreen) |
+| `o` | Open CFG as rendered PNG in system viewer (FunctionScreen) |
 | `d` | Toggle dataflow table/graph view (FunctionScreen) |
 | Arrow keys | Navigate tables and trees |
 
+## Architecture
+
+### Analysis Pipeline
+
+The TUI delegates all analysis to two libraries:
+
+- **Codescry** (`repo_surveyor`): `survey()` scans a repo and returns CTags symbols, integration signals, resolution results, and concretisation. Optionally runs BGE embedding concretisation via `PatternEmbeddingConcretiser` for signal classification.
+- **Red Dragon** (`interpreter`): `lower_source()` parses and lowers code to IR. `build_cfg_from_source()` builds a function-scoped CFG. `dump_mermaid()` generates Mermaid flowcharts. `run()` performs symbolic execution. `analyze()` computes dataflow (def-use chains, reaching definitions).
+
+The `AnalysisFacade` (`facade/analysis.py`) unifies both libraries into a single cached API. Function-level analysis uses Red Dragon's API to scope the CFG to just the selected function via `extract_function_instructions()`.
+
+### CFG Rendering
+
+CFG visualisation uses Red Dragon's built-in `dump_mermaid()` which generates Mermaid flowchart syntax with function/class subgraphs, T/F edge labels, call edges, and dead code elimination. When opened externally (`o`), the Mermaid output is rendered to PNG via `npx @mermaid-js/mermaid-cli`. The in-terminal view shows a colored text representation of the CFG blocks and edges.
+
+### Session Persistence
+
+Survey results, function analysis, chat history, and navigation state are persisted to `~/.rev-eng-tui/sessions/` as JSON/JSONL files.
+
 ## Dependencies
 
+### Python (installed via Poetry)
 - **[Codescry](https://github.com/avishek-sen-gupta/codescry)**: Repo surveying, CTags, integration detection, BGE embedding concretisation
-- **[Red Dragon](https://github.com/avishek-sen-gupta/red-dragon)**: Tree-sitter parsing, IR lowering, CFG, dataflow analysis, symbolic execution
+- **[Red Dragon](https://github.com/avishek-sen-gupta/red-dragon)**: Tree-sitter parsing, IR lowering, CFG/Mermaid generation, dataflow analysis, symbolic execution
 - **[Textual](https://textual.textualize.io/)**: TUI framework
 - **[Anthropic](https://docs.anthropic.com/)**: Claude API for LLM chat
-- **[CairoSVG](https://cairosvg.org/)**: SVG→PNG for CFG rendering
 - **[sentence-transformers](https://www.sbert.net/)**: BGE embedding model
+- **[Pydantic](https://docs.pydantic.dev/)**: Configuration models
+
+### System
+- **[Node.js](https://nodejs.org/)**: Required for `npx @mermaid-js/mermaid-cli` (CFG PNG rendering)
 
 ## Tests
 

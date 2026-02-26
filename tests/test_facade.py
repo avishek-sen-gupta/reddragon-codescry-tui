@@ -151,8 +151,8 @@ class TestFunctionAnalysis:
             source="def test(): return 42",
             language="python",
             ir_instructions=["mock_ir"],
-            cfg_dot="digraph {}",
+            cfg_mermaid="flowchart TD",
         )
         assert fa.error is None
         assert len(fa.ir_instructions) == 1
-        assert fa.cfg_dot == "digraph {}"
+        assert fa.cfg_mermaid == "flowchart TD"

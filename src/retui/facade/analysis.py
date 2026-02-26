@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import Any
 
 from retui.facade.types import FunctionAnalysis, SurveyBundle
@@ -109,25 +108,23 @@ class AnalysisFacade:
             return self._function_cache[cache_key]
 
         try:
-            from interpreter.run import run as rd_run
-            from interpreter.frontend import get_frontend
-            from interpreter.parser import Parser, TreeSitterParserFactory
-            from interpreter.cfg import build_cfg
+            from interpreter.api import lower_source, build_cfg_from_source, dump_mermaid
             from interpreter.dataflow import analyze as dataflow_analyze
             from interpreter.registry import build_registry
+            from interpreter.run import run as rd_run
 
-            # Parse and lower to IR
-            frontend = get_frontend(language, frontend_type="deterministic")
-            tree = Parser(TreeSitterParserFactory()).parse(source, language)
-            instructions = frontend.lower(tree, source.encode("utf-8"))
+            # Lower source to IR
+            instructions = lower_source(source, language)
 
-            # Build CFG
-            cfg = build_cfg(instructions)
+            # Build function-scoped CFG via Red Dragon's API
+            cfg = build_cfg_from_source(
+                source, language, function_name=function_name,
+            )
 
             # Build registry
             registry = build_registry(instructions, cfg)
 
-            # Dataflow analysis
+            # Dataflow analysis on the function-scoped CFG
             dataflow = dataflow_analyze(cfg)
 
             # Symbolic execution
@@ -139,9 +136,10 @@ class AnalysisFacade:
                 frontend_type="deterministic",
             )
 
-            # Generate DOT for CFG
-            from retui.rendering.dot_utils import cfg_to_dot
-            cfg_dot = cfg_to_dot(cfg)
+            # Generate Mermaid via Red Dragon's API
+            cfg_mermaid = dump_mermaid(
+                source, language, function_name=function_name,
+            )
 
             result = FunctionAnalysis(
                 function_name=function_name,
@@ -152,7 +150,7 @@ class AnalysisFacade:
                 vm_state=vm_state,
                 dataflow=dataflow,
                 registry=registry,
-                cfg_dot=cfg_dot,
+                cfg_mermaid=cfg_mermaid,
             )
         except Exception as e:
             result = FunctionAnalysis(

@@ -1,4 +1,4 @@
-"""CFG rendering pipeline: DOT -> SVG -> PNG -> terminal display."""
+"""CFG rendering pipeline: Mermaid -> PNG via mmdc."""
 
 from __future__ import annotations
 
@@ -7,55 +7,41 @@ import tempfile
 from pathlib import Path
 
 
-def dot_to_svg(dot_source: str) -> str:
-    """Render DOT source to SVG string using Graphviz dot command."""
-    result = subprocess.run(
-        ["dot", "-Tsvg"],
-        input=dot_source.encode("utf-8"),
-        capture_output=True,
-        timeout=30,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"Graphviz error: {result.stderr.decode()}")
-    return result.stdout.decode("utf-8")
-
-
-def svg_to_png(svg_content: str, output_path: Path | None = None, scale: float = 1.0) -> Path:
-    """Convert SVG string to PNG file using cairosvg."""
-    import cairosvg
+def mermaid_to_png(mermaid_source: str, output_path: Path | None = None, scale: int = 2) -> Path:
+    """Render Mermaid source directly to PNG using mmdc via npx."""
+    with tempfile.NamedTemporaryFile(suffix=".mmd", mode="w", delete=False) as mmd:
+        mmd.write(mermaid_source)
+        mmd_path = Path(mmd.name)
 
     if output_path is None:
-        tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-        output_path = Path(tmp.name)
-        tmp.close()
+        output_path = mmd_path.with_suffix(".png")
 
-    cairosvg.svg2png(
-        bytestring=svg_content.encode("utf-8"),
-        write_to=str(output_path),
-        scale=scale,
-    )
-    return output_path
-
-
-def render_cfg_png(dot_source: str, scale: float = 1.5) -> Path:
-    """Full pipeline: DOT -> SVG -> PNG file."""
-    svg = dot_to_svg(dot_source)
-    return svg_to_png(svg, scale=scale)
-
-
-def save_cfg_svg(dot_source: str, output_path: Path) -> Path:
-    """Save CFG as SVG for external viewing."""
-    svg = dot_to_svg(dot_source)
-    output_path.write_text(svg, encoding="utf-8")
-    return output_path
+    try:
+        result = subprocess.run(
+            [
+                "npx", "-y", "@mermaid-js/mermaid-cli",
+                "-i", str(mmd_path),
+                "-o", str(output_path),
+                "-t", "dark",
+                "-b", "#1a1b26",
+                "-s", str(scale),
+            ],
+            capture_output=True,
+            timeout=60,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"mmdc error: {result.stderr.decode()}")
+        return output_path
+    finally:
+        mmd_path.unlink(missing_ok=True)
 
 
-def open_svg_external(svg_path: Path) -> None:
-    """Open SVG in system default viewer."""
+def open_external(path: Path) -> None:
+    """Open a file in system default viewer."""
     import sys
     if sys.platform == "darwin":
-        subprocess.Popen(["open", str(svg_path)])
+        subprocess.Popen(["open", str(path)])
     elif sys.platform == "linux":
-        subprocess.Popen(["xdg-open", str(svg_path)])
+        subprocess.Popen(["xdg-open", str(path)])
     else:
-        subprocess.Popen(["start", str(svg_path)], shell=True)
+        subprocess.Popen(["start", str(path)], shell=True)

@@ -1,4 +1,4 @@
-"""Widget for displaying rendered CFG images in the terminal."""
+"""Widget for displaying rendered CFG in the terminal."""
 
 from __future__ import annotations
 
@@ -7,13 +7,12 @@ from pathlib import Path
 from typing import Any
 
 from textual.app import ComposeResult
-from textual.containers import Vertical
 from textual.widget import Widget
-from textual.widgets import RichLog, Static
+from textual.widgets import RichLog
 
 
 class CFGViewer(Widget):
-    """Displays CFG as rendered image or text fallback."""
+    """Displays CFG as colored text with optional external SVG rendering."""
 
     DEFAULT_CSS = """
     CFGViewer {
@@ -23,74 +22,114 @@ class CFGViewer(Widget):
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        self._dot_source: str = ""
-        self._svg_path: Path | None = None
+        self._cfg: Any = None
+        self._mermaid_source: str = ""
 
     def compose(self) -> ComposeResult:
         yield RichLog(id="cfg-display", highlight=False, markup=True)
 
-    def display_cfg(self, cfg: Any, dot_source: str = "") -> None:
-        """Display CFG as colored text. Press 'o' to open image externally."""
-        self._dot_source = dot_source
+    def display_cfg(
+        self,
+        cfg: Any,
+        mermaid_source: str = "",
+    ) -> None:
+        """Display CFG as colored text. Press 'o' to open rendered SVG externally."""
+        self._cfg = cfg
+        self._mermaid_source = mermaid_source
         display = self.query_one("#cfg-display", RichLog)
         display.clear()
 
-        if cfg:
-            self._render_text(display, cfg)
-            if dot_source:
-                display.write("")
-                display.write("[#565f89 italic]Press 'o' to open CFG image in external viewer[/]")
-        else:
+        if not cfg or not cfg.blocks:
             display.write("[#565f89]No CFG available[/]")
+            return
 
-    def _render_image(self, display: RichLog, dot_source: str) -> None:
-        """Attempt to render CFG as an image in the terminal."""
-        from retui.rendering.cfg_image import render_cfg_png
-
-        png_path = render_cfg_png(dot_source, scale=1.5)
-
-        try:
-            from rich_pixels import Pixels
-
-            pixels = Pixels.from_image_path(str(png_path))
-            display.write(pixels)
-        except Exception:
-            # Fallback: inform user
-            display.write("[#2ac3de]CFG image rendered. Press 'o' to open externally.[/]")
+        self._render_text(display, cfg)
+        display.write("")
+        display.write(
+            "[#565f89 italic]Press 'o' to open CFG as rendered SVG in external viewer[/]"
+        )
 
     def _render_text(self, display: RichLog, cfg: Any) -> None:
-        """Render CFG as colored text."""
+        """Render CFG as colored text with block structure and edges."""
         from rich.text import Text
 
         for label, block in cfg.blocks.items():
+            # Block header
             header = Text()
-            header.append(f"[{label}]", style="bold #7dcfff")
+            is_entry = label == cfg.entry
+            style = "bold #9ece6a" if is_entry else "bold #7dcfff"
+            header.append(f"[{label}]", style=style)
+            if is_entry:
+                header.append("  (entry)", style="#9ece6a")
+
             preds = ", ".join(block.predecessors) if block.predecessors else "none"
             succs = ", ".join(block.successors) if block.successors else "none"
-            header.append(f"  preds=({preds})  succs=[{succs}]", style="#565f89")
+            header.append(f"  preds=({preds})", style="#565f89")
+
+            # Color successor labels based on T/F for conditionals
+            last = block.instructions[-1] if block.instructions else None
+            opcode = ""
+            if last:
+                opcode = last.opcode.value if hasattr(last.opcode, "value") else str(last.opcode)
+
+            if opcode == "branch_if" and len(block.successors) == 2:
+                header.append("  succs=[", style="#565f89")
+                header.append(block.successors[0], style="bold #9ece6a")
+                header.append("(T)", style="#9ece6a")
+                header.append(", ", style="#565f89")
+                header.append(block.successors[1], style="bold #f7768e")
+                header.append("(F)", style="#f7768e")
+                header.append("]", style="#565f89")
+            else:
+                header.append(f"  succs=[{succs}]", style="#565f89")
+
             display.write(header)
 
+            # Instructions
             for inst in block.instructions:
                 line = Text()
                 line.append("  ", style="")
-                opcode = inst.opcode.value if hasattr(inst.opcode, "value") else str(inst.opcode)
+                opcode_val = inst.opcode.value if hasattr(inst.opcode, "value") else str(inst.opcode)
                 if inst.result_reg:
                     line.append(f"{inst.result_reg}", style="#2ac3de dim")
                     line.append(" = ", style="#565f89")
-                line.append(opcode, style="bold #e0af68")
+                line.append(opcode_val, style=self._opcode_style(opcode_val))
                 if inst.operands:
                     line.append(" " + " ".join(str(o) for o in inst.operands), style="#c0caf5")
+                if inst.label:
+                    line.append(f" {inst.label}", style="#bb9af7")
                 display.write(line)
 
             display.write("")
 
-    def open_external(self) -> None:
-        """Save SVG and open in system viewer."""
-        if not self._dot_source:
-            return
-        from retui.rendering.cfg_image import save_cfg_svg, open_svg_external
+    def _opcode_style(self, opcode: str) -> str:
+        """Return a Rich style string for an opcode."""
+        op = opcode.lower()
+        if op in ("const", "load_var", "load_field", "load_index", "new_object", "new_array"):
+            return "bold #7dcfff"
+        if op in ("binop", "unop"):
+            return "bold #bb9af7"
+        if op in ("branch", "branch_if", "return", "throw"):
+            return "bold #f7768e"
+        if op in ("store_var", "store_field", "store_index"):
+            return "bold #9ece6a"
+        if op in ("call_function", "call_method"):
+            return "bold #e0af68"
+        if op in ("symbolic", "label"):
+            return "bold #ff9e64"
+        return "#c0caf5"
 
-        svg_path = Path(tempfile.mktemp(suffix=".svg"))
-        save_cfg_svg(self._dot_source, svg_path)
-        self._svg_path = svg_path
-        open_svg_external(svg_path)
+    def open_external(self) -> None:
+        """Render Mermaid to PNG and open in system viewer."""
+        if not self._mermaid_source:
+            return
+        from retui.rendering.cfg_image import mermaid_to_png, open_external
+
+        try:
+            png_path = mermaid_to_png(self._mermaid_source)
+            open_external(png_path)
+        except Exception:
+            # Fallback: save raw Mermaid file and open
+            mmd_path = Path(tempfile.mktemp(suffix=".mmd"))
+            mmd_path.write_text(self._mermaid_source, encoding="utf-8")
+            open_external(mmd_path)

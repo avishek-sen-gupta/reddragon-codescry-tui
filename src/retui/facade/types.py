@@ -81,5 +81,5 @@ class FunctionAnalysis:
     vm_state: Any = None  # VMState
     dataflow: Any = None  # DataflowResult
     registry: Any = None  # FunctionRegistry
-    cfg_dot: str = ""
+    cfg_mermaid: str = ""
     error: str | None = None

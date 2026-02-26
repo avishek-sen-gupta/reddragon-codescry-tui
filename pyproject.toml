@@ -17,12 +17,12 @@ python-dotenv = "^1.2.1"
 sentence-transformers = "^5.2.3"
 
 [tool.poetry.dependencies.codescry]
-path = "../codescry"
-develop = true
+git = "git@github.com:avishek-sen-gupta/codescry.git"
+branch = "main"
 
 [tool.poetry.dependencies.red-dragon]
-path = "../red-dragon"
-develop = true
+git = "git@github.com:avishek-sen-gupta/red-dragon.git"
+branch = "main"
 
 [tool.poetry.scripts]
 retui = "retui.cli:main"
