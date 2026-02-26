@@ -7,7 +7,6 @@ dist/
 build/
 .env
 .venv/
-poetry.lock
 .idea/
 .DS_Store
 ~/.rev-eng-tui/

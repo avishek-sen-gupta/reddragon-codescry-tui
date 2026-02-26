@@ -1,0 +1,5 @@
+fileignoreconfig:
+  - filename: poetry.lock
+    checksum: ""
+    ignore_detectors:
+      - filecontent
