@@ -16,6 +16,7 @@ from retui.session.config import AppConfig, RepoConfig
 from retui.widgets.cfg_viewer import CFGViewer
 from retui.widgets.chat_pane import ChatPane
 from retui.widgets.dataflow_viewer import DataflowViewer
+from retui.widgets.execution_replay_viewer import ExecutionReplayViewer
 from retui.widgets.ir_viewer import IRViewer
 from retui.widgets.status_bar import StatusBar
 from retui.widgets.vm_state_viewer import VMStateViewer
@@ -28,6 +29,8 @@ class FunctionScreen(Screen):
         ("escape", "go_back", "Back"),
         ("o", "open_cfg_external", "Open CFG"),
         ("d", "toggle_dataflow", "Toggle Dataflow View"),
+        ("n", "step_forward", "Step Forward"),
+        ("p", "step_backward", "Step Backward"),
     ]
 
     def __init__(
@@ -62,6 +65,8 @@ class FunctionScreen(Screen):
                         yield VMStateViewer(id="vm-state-viewer")
                     with TabPane("Dataflow", id="dataflow-tab"):
                         yield DataflowViewer(id="dataflow-viewer")
+                    with TabPane("Execute", id="execute-tab"):
+                        yield ExecutionReplayViewer(id="execution-replay")
             yield ChatPane(
                 config=self.config,
                 repo_name=self.repo.name,
@@ -91,6 +96,7 @@ class FunctionScreen(Screen):
             ("Esc", "Back"),
             ("o", "Open CFG"),
             ("d", "Toggle Dataflow"),
+            ("n/p", "Step Fwd/Back"),
             ("q", "Quit"),
         ]
 
@@ -217,6 +223,13 @@ class FunctionScreen(Screen):
             df_viewer = self.query_one("#dataflow-viewer", DataflowViewer)
             df_viewer.populate(self.analysis.dataflow)
 
+        # Execute tab
+        if self.analysis.execution_trace:
+            replay = self.query_one("#execution-replay", ExecutionReplayViewer)
+            replay.set_trace(
+                self.analysis.execution_trace, self.analysis.ir_instructions
+            )
+
         # Update chat context
         chat = self.query_one("#chat-pane", ChatPane)
         chat.set_analysis_context(self.analysis, self.bundle, self.file_path)
@@ -244,3 +257,11 @@ class FunctionScreen(Screen):
             df_viewer.toggle_view()
         except Exception as e:
             self._show_error(f"Could not toggle dataflow view: {e}")
+
+    def action_step_forward(self) -> None:
+        replay = self.query_one("#execution-replay", ExecutionReplayViewer)
+        replay.step_forward()
+
+    def action_step_backward(self) -> None:
+        replay = self.query_one("#execution-replay", ExecutionReplayViewer)
+        replay.step_backward()

@@ -123,10 +123,10 @@ class AnalysisFacade:
                 lower_source,
                 build_cfg_from_source,
                 dump_mermaid,
+                execute_traced,
             )
             from interpreter.dataflow import analyze as dataflow_analyze
             from interpreter.registry import build_registry
-            from interpreter.run import run as rd_run
 
             # Lower source to IR
             instructions = lower_source(source, language)
@@ -144,14 +144,15 @@ class AnalysisFacade:
             # Dataflow analysis on the function-scoped CFG
             dataflow = dataflow_analyze(cfg)
 
-            # Symbolic execution
-            vm_state = rd_run(
+            # Traced symbolic execution (produces both trace and final state)
+            trace = execute_traced(
                 source=source,
                 language=language,
+                function_name=function_name,
                 entry_point=entry_point,
                 max_steps=max_steps,
-                frontend_type="deterministic",
             )
+            vm_state = trace.steps[-1].vm_state if trace.steps else None
 
             # Generate Mermaid via Red Dragon's API
             cfg_mermaid = dump_mermaid(
@@ -169,6 +170,7 @@ class AnalysisFacade:
                 vm_state=vm_state,
                 dataflow=dataflow,
                 registry=registry,
+                execution_trace=trace,
                 cfg_mermaid=cfg_mermaid,
             )
         except Exception as e:

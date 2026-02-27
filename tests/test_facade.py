@@ -156,3 +156,21 @@ class TestFunctionAnalysis:
         assert fa.error is None
         assert len(fa.ir_instructions) == 1
         assert fa.cfg_mermaid == "flowchart TD"
+
+    def test_execution_trace_defaults_to_none(self) -> None:
+        fa = FunctionAnalysis(
+            function_name="test_fn",
+            source="def test(): pass",
+            language="python",
+        )
+        assert fa.execution_trace is None
+
+    def test_execution_trace_accepts_value(self) -> None:
+        sentinel = object()
+        fa = FunctionAnalysis(
+            function_name="test_fn",
+            source="def test(): pass",
+            language="python",
+            execution_trace=sentinel,
+        )
+        assert fa.execution_trace is sentinel

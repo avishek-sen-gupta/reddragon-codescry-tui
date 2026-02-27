@@ -61,6 +61,7 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 - **CFG tab**: Colored text-based control flow graph with block labels, T/F edge labels for conditionals, entry block highlighting. Press `o` to render Red Dragon's Mermaid CFG as a PNG and open externally
 - **VM State tab**: Heap objects, call stack, path conditions from symbolic execution
 - **Dataflow tab**: Def-use chains and variable dependencies (press `d` to toggle table/graph view)
+- **Execute tab**: Step-by-step execution replay — IR listing with current instruction highlighted, VMState snapshot at each step. Press `n`/`p` to step forward/backward through the execution trace
 - **Chat pane**: LLM-powered contextual Q&A about the code being viewed
 
 ## Setup
@@ -124,6 +125,8 @@ The `llm.model` field uses [LiteLLM's provider/model format](https://docs.litell
 | `q` | Quit |
 | `o` | Open CFG as rendered PNG in system viewer (FunctionScreen) |
 | `d` | Toggle dataflow table/graph view (FunctionScreen) |
+| `n` | Step forward in execution trace (FunctionScreen Execute tab) |
+| `p` | Step backward in execution trace (FunctionScreen Execute tab) |
 | Arrow keys | Navigate tables and trees |
 
 ## Architecture
@@ -133,7 +136,7 @@ The `llm.model` field uses [LiteLLM's provider/model format](https://docs.litell
 The TUI delegates all analysis to two libraries:
 
 - **Codescry** (`repo_surveyor`): `survey()` scans a repo and returns CTags symbols, integration signals, resolution results, and concretisation. Optionally runs BGE embedding concretisation via `PatternEmbeddingConcretiser` for signal classification.
-- **Red Dragon** (`interpreter`): `lower_source()` parses and lowers code to IR. `build_cfg_from_source()` builds a function-scoped CFG. `dump_mermaid()` generates Mermaid flowcharts. `run()` performs symbolic execution. `analyze()` computes dataflow (def-use chains, reaching definitions). `extract_function_source()` uses tree-sitter AST parsing to extract function bodies from source files.
+- **Red Dragon** (`interpreter`): `lower_source()` parses and lowers code to IR. `build_cfg_from_source()` builds a function-scoped CFG. `dump_mermaid()` generates Mermaid flowcharts. `execute_traced()` performs symbolic execution with per-step VMState snapshots for replay. `analyze()` computes dataflow (def-use chains, reaching definitions). `extract_function_source()` uses tree-sitter AST parsing to extract function bodies from source files.
 
 The `AnalysisFacade` (`facade/analysis.py`) unifies both libraries into a single cached API. Function-level analysis uses Red Dragon's API to scope the CFG to just the selected function via `extract_function_instructions()`.
 

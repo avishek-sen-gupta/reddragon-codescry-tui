@@ -90,5 +90,6 @@ class FunctionAnalysis:
     vm_state: Any = None  # VMState
     dataflow: Any = None  # DataflowResult
     registry: Any = None  # FunctionRegistry
+    execution_trace: Any = None  # ExecutionTrace from Red Dragon
     cfg_mermaid: str = ""
     error: str | None = None
