@@ -106,12 +106,26 @@ class ExecutionReplayViewer(Widget):
         height: 1fr;
     }
 
+    #replay-body {
+        height: 1fr;
+    }
+
     #replay-ir {
-        height: 2fr;
+        width: 2fr;
         overflow-y: auto;
     }
 
-    #replay-vm {
+    #replay-state {
+        width: 1fr;
+        border-left: solid #565f89;
+    }
+
+    #replay-frame {
+        height: 1fr;
+        border-bottom: solid #565f89;
+    }
+
+    #replay-heap {
         height: 1fr;
     }
 
@@ -144,8 +158,11 @@ class ExecutionReplayViewer(Widget):
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            yield Static(id="replay-ir")
-            yield RichLog(id="replay-vm", highlight=False, markup=True)
+            with Horizontal(id="replay-body"):
+                yield Static(id="replay-ir")
+                with Vertical(id="replay-state"):
+                    yield RichLog(id="replay-frame", highlight=False, markup=True)
+                    yield RichLog(id="replay-heap", highlight=False, markup=True)
             with Horizontal(id="replay-controls"):
                 yield Button("Run", id="btn-run", variant="primary")
                 yield Button("\u25c0", id="btn-prev")
@@ -206,7 +223,8 @@ class ExecutionReplayViewer(Widget):
         if not self._trace:
             return
         self._render_ir()
-        self._render_vm_state()
+        self._render_frame()
+        self._render_heap()
         self._render_step_counter()
 
     def _render_ir(self) -> None:
@@ -265,56 +283,80 @@ class ExecutionReplayViewer(Widget):
         combined = Text("\n").join(lines)
         ir_static.update(combined)
 
-    def _render_vm_state(self) -> None:
-        """Render the VM state for the current step."""
-        display = self.query_one("#replay-vm", RichLog)
+    def _render_frame(self) -> None:
+        """Render the call-stack frame (registers + locals) into the frame pane."""
+        display = self.query_one("#replay-frame", RichLog)
         display.clear()
-
-        if not self._trace:
-            return
 
         vm_state = self._current_vm_state()
         if vm_state is None:
-            display.write("[#565f89]No VM state available[/]")
+            display.write("[#565f89]No frame data[/]")
             return
 
-        # Compact call stack (current frame only)
-        if vm_state.call_stack:
-            frame = vm_state.call_stack[-1]
-            header = Text()
-            header.append("Frame: ", style="bold #7dcfff")
-            header.append(frame.function_name, style="#7dcfff")
-            display.write(header)
+        if not vm_state.call_stack:
+            display.write("[#565f89]No active frame[/]")
+            return
 
-            # Registers
-            if hasattr(frame, "registers") and frame.registers:
-                for reg, val in list(frame.registers.items())[:10]:
-                    reg_line = Text()
-                    reg_line.append(f"  {reg}", style="#2ac3de dim")
-                    reg_line.append(" = ", style="#565f89")
-                    reg_line.append(_format_value(val))
-                    display.write(reg_line)
+        frame = vm_state.call_stack[-1]
+        header = Text()
+        header.append("Frame: ", style="bold #7dcfff")
+        header.append(frame.function_name, style="#7dcfff")
+        display.write(header)
 
-            # Local vars
-            if hasattr(frame, "local_vars") and frame.local_vars:
-                for var, val in list(frame.local_vars.items())[:10]:
-                    var_line = Text()
-                    var_line.append(f"  {var}", style="#c0caf5")
-                    var_line.append(" = ", style="#565f89")
-                    var_line.append(_format_value(val))
-                    display.write(var_line)
+        # Registers
+        if hasattr(frame, "registers") and frame.registers:
+            display.write(Text("Registers", style="bold #565f89"))
+            for reg, val in list(frame.registers.items())[:10]:
+                reg_line = Text()
+                reg_line.append(f"  {reg}", style="#2ac3de dim")
+                reg_line.append(" = ", style="#565f89")
+                reg_line.append(_format_value(val))
+                display.write(reg_line)
 
-        # Heap (compact)
+        # Local vars
+        if hasattr(frame, "local_vars") and frame.local_vars:
+            display.write(Text("Locals", style="bold #565f89"))
+            for var, val in list(frame.local_vars.items())[:10]:
+                var_line = Text()
+                var_line.append(f"  {var}", style="#c0caf5")
+                var_line.append(" = ", style="#565f89")
+                var_line.append(_format_value(val))
+                display.write(var_line)
+
+    def _render_heap(self) -> None:
+        """Render heap objects and path conditions into the heap pane."""
+        display = self.query_one("#replay-heap", RichLog)
+        display.clear()
+
+        vm_state = self._current_vm_state()
+        if vm_state is None:
+            display.write("[#565f89]No heap data[/]")
+            return
+
+        # Heap objects with expanded fields
         if vm_state.heap:
             display.write(Text("Heap", style="bold #7dcfff"))
             for addr, obj in vm_state.heap.items():
                 heap_line = Text()
                 heap_line.append(f"  {addr}", style="#bb9af7")
-                if hasattr(obj, "type_hint") and obj.type_hint:
-                    heap_line.append(f" ({obj.type_hint})", style="#565f89")
+                type_hint = getattr(obj, "type_hint", None)
+                if type_hint:
+                    heap_line.append(f" ({type_hint})", style="#565f89")
                 display.write(heap_line)
 
-        # Path conditions (compact)
+                # Expand object fields if available
+                fields = getattr(obj, "fields", {})
+                if isinstance(fields, dict):
+                    for field_name, field_val in fields.items():
+                        field_line = Text()
+                        field_line.append(f"    .{field_name}", style="#c0caf5")
+                        field_line.append(" = ", style="#565f89")
+                        field_line.append(_format_value(field_val))
+                        display.write(field_line)
+        else:
+            display.write("[#565f89]Heap empty[/]")
+
+        # Path conditions
         if vm_state.path_conditions:
             display.write(Text("Conditions", style="bold #7dcfff"))
             for cond in vm_state.path_conditions:

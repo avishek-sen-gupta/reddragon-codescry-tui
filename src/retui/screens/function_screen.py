@@ -1,4 +1,4 @@
-"""FunctionScreen — deep-dive with IR, CFG, VM State, Dataflow tabs + Chat pane."""
+"""FunctionScreen — deep-dive with IR, CFG, Dataflow, Execute tabs + Chat."""
 
 from __future__ import annotations
 
@@ -7,23 +7,21 @@ from typing import Any
 
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from textual.screen import Screen
 from textual.widgets import Static, TabbedContent, TabPane
 
 from retui.facade.types import FunctionAnalysis, SurveyBundle
 from retui.session.config import AppConfig, RepoConfig
 from retui.widgets.cfg_viewer import CFGViewer
-from retui.widgets.chat_pane import ChatPane
 from retui.widgets.dataflow_viewer import DataflowViewer
 from retui.widgets.execution_replay_viewer import ExecutionReplayViewer
 from retui.widgets.ir_viewer import IRViewer
 from retui.widgets.status_bar import StatusBar
-from retui.widgets.vm_state_viewer import VMStateViewer
 
 
 class FunctionScreen(Screen):
-    """Displays IR, CFG, VM state, dataflow analysis tabs with LLM chat pane."""
+    """Displays IR, CFG, dataflow, and execution replay tabs with LLM chat."""
 
     BINDINGS = [
         ("escape", "go_back", "Back"),
@@ -31,6 +29,7 @@ class FunctionScreen(Screen):
         ("d", "toggle_dataflow", "Toggle Dataflow View"),
         ("n", "step_forward", "Step Forward"),
         ("p", "step_backward", "Step Backward"),
+        ("c", "open_chat", "Chat"),
     ]
 
     def __init__(
@@ -54,24 +53,16 @@ class FunctionScreen(Screen):
         return self.app._facade  # type: ignore[attr-defined]
 
     def compose(self) -> ComposeResult:
-        with Horizontal(id="function-main"):
-            with Vertical(id="analysis-panel", classes="panel"):
-                with TabbedContent(id="analysis-tabs"):
-                    with TabPane("IR", id="ir-tab"):
-                        yield IRViewer(id="ir-viewer")
-                    with TabPane("CFG", id="cfg-tab"):
-                        yield CFGViewer(id="cfg-viewer")
-                    with TabPane("VM State", id="vm-tab"):
-                        yield VMStateViewer(id="vm-state-viewer")
-                    with TabPane("Dataflow", id="dataflow-tab"):
-                        yield DataflowViewer(id="dataflow-viewer")
-                    with TabPane("Execute", id="execute-tab"):
-                        yield ExecutionReplayViewer(id="execution-replay")
-            yield ChatPane(
-                config=self.config,
-                repo_name=self.repo.name,
-                id="chat-pane",
-            )
+        with Vertical(id="analysis-panel", classes="panel"):
+            with TabbedContent(id="analysis-tabs"):
+                with TabPane("IR", id="ir-tab"):
+                    yield IRViewer(id="ir-viewer")
+                with TabPane("CFG", id="cfg-tab"):
+                    yield CFGViewer(id="cfg-viewer")
+                with TabPane("Dataflow", id="dataflow-tab"):
+                    yield DataflowViewer(id="dataflow-viewer")
+                with TabPane("Execute", id="execute-tab"):
+                    yield ExecutionReplayViewer(id="execution-replay")
         yield StatusBar()
 
     def on_mount(self) -> None:
@@ -97,6 +88,7 @@ class FunctionScreen(Screen):
             ("o", "Open CFG"),
             ("d", "Toggle Dataflow"),
             ("n/p", "Step Fwd/Back"),
+            ("c", "Chat"),
             ("q", "Quit"),
         ]
 
@@ -213,11 +205,6 @@ class FunctionScreen(Screen):
                 self.analysis.cfg_mermaid,
             )
 
-        # VM State tab
-        if self.analysis.vm_state:
-            vm_viewer = self.query_one("#vm-state-viewer", VMStateViewer)
-            vm_viewer.display_state(self.analysis.vm_state)
-
         # Dataflow tab
         if self.analysis.dataflow:
             df_viewer = self.query_one("#dataflow-viewer", DataflowViewer)
@@ -229,10 +216,6 @@ class FunctionScreen(Screen):
             replay.set_trace(
                 self.analysis.execution_trace, self.analysis.ir_instructions
             )
-
-        # Update chat context
-        chat = self.query_one("#chat-pane", ChatPane)
-        chat.set_analysis_context(self.analysis, self.bundle, self.file_path)
 
     def _show_error(self, message: str) -> None:
         ir_viewer = self.query_one("#ir-viewer", IRViewer)
@@ -265,3 +248,16 @@ class FunctionScreen(Screen):
     def action_step_backward(self) -> None:
         replay = self.query_one("#execution-replay", ExecutionReplayViewer)
         replay.step_backward()
+
+    def action_open_chat(self) -> None:
+        from retui.screens.chat_screen import ChatScreen
+
+        self.app.push_screen(
+            ChatScreen(
+                config=self.config,
+                repo_name=self.repo.name,
+                analysis=self.analysis,
+                bundle=self.bundle,
+                file_path=self.file_path,
+            )
+        )

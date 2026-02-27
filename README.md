@@ -34,10 +34,10 @@ A top-down, read-only, multi-repo reverse engineering terminal UI that integrate
 Engineers exploring unfamiliar codebases can drill down from a high-level overview to function-level symbolic execution, with an LLM chat pane for contextual questions.
 
 ```
-DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen ──Enter──▸ FunctionScreen
-(list all repos)          (file tree +          (source code +       (IR, CFG, VM state,
-                           symbols +             symbols +            dataflow tabs +
-                           integrations)         integrations)        LLM chat pane)
+DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen ──Enter──▸ FunctionScreen ──c──▸ ChatScreen
+(list all repos)          (file tree +          (source code +       (IR, CFG, VM state,   (full-width
+                           symbols +             symbols +            dataflow, execute     LLM chat)
+                           integrations)         integrations)        tabs)
 
                            Escape goes back one screen at each level
 ```
@@ -59,10 +59,12 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 ### FunctionScreen
 - **IR tab**: Color-coded three-address code instructions with opcode-based styling
 - **CFG tab**: Colored text-based control flow graph with block labels, T/F edge labels for conditionals, entry block highlighting. Press `o` to render Red Dragon's Mermaid CFG as a PNG and open externally
-- **VM State tab**: Heap objects, call stack, path conditions from symbolic execution
 - **Dataflow tab**: Def-use chains and variable dependencies (press `d` to toggle table/graph view)
-- **Execute tab**: Step-by-step execution replay — IR listing with current instruction highlighted, VMState snapshot at each step. Press `n`/`p` to step forward/backward through the execution trace
-- **Chat pane**: LLM-powered contextual Q&A about the code being viewed
+- **Execute tab**: Step-by-step execution replay — IR listing with current instruction highlighted, Frame (registers + locals) and Heap (objects with expanded fields + path conditions) side-by-side in independently scrollable panes. Press `n`/`p` to step forward/backward through the execution trace
+
+### ChatScreen
+- Full-width LLM-powered contextual Q&A overlay (press `c` from FunctionScreen, `Escape` to return)
+- Has full context of IR, dataflow, VM state, and survey bundle for the current function
 
 ## Setup
 
@@ -127,6 +129,7 @@ The `llm.model` field uses [LiteLLM's provider/model format](https://docs.litell
 | `d` | Toggle dataflow table/graph view (FunctionScreen) |
 | `n` | Step forward in execution trace (FunctionScreen Execute tab) |
 | `p` | Step backward in execution trace (FunctionScreen Execute tab) |
+| `c` | Open LLM chat screen (FunctionScreen) |
 | Arrow keys | Navigate tables and trees |
 
 ## Architecture
