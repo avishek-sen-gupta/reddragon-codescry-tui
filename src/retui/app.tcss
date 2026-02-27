@@ -78,25 +78,11 @@ Screen {
 }
 
 /* Function screen layout */
-#function-main {
-    height: 1fr;
-}
-
 #analysis-panel {
-    width: 2fr;
-}
-
-#chat-pane {
     width: 1fr;
-    min-width: 40;
-    background: #24283b;
-    border-left: solid #565f89;
 }
 
-#chat-pane:focus-within {
-    border-left: solid #7dcfff;
-}
-
+/* Chat screen layout */
 #chat-messages {
     height: 1fr;
 }

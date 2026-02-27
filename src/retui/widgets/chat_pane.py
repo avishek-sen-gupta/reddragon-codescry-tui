@@ -20,12 +20,8 @@ class ChatPane(Widget):
 
     DEFAULT_CSS = """
     ChatPane {
-        width: 30;
+        height: 1fr;
         background: #24283b;
-        border-left: solid #565f89;
-    }
-    ChatPane:focus-within {
-        border-left: solid #7dcfff;
     }
     """
 

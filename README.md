@@ -29,6 +29,10 @@ A top-down, read-only, multi-repo reverse engineering terminal UI that integrate
 ![Function Chat](docs/screenshots/function-chat.png)
 > Ask questions about the function — the LLM has full context of IR, dataflow, and VM state.
 
+### Function Analysis — Execute
+![Execute Screen](docs/screenshots/execute-screen.png)
+> Step-by-step execution replay with IR highlighting, Frame (registers + locals) and Heap (objects + path conditions) in side-by-side panes.
+
 ## What it does
 
 Engineers exploring unfamiliar codebases can drill down from a high-level overview to function-level symbolic execution, with an LLM chat pane for contextual questions.

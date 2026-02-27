@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from retui.widgets.execution_replay_viewer import _build_ir_index_map
+from retui.widgets.execution_replay_viewer import _build_ir_index_map, _format_value
 
 
 @dataclass
@@ -145,3 +145,37 @@ class TestStepNavigation:
         current = 0
         current = len(trace.steps) - 1  # run_to_end
         assert current == 9
+
+
+class TestFormatValue:
+    """Tests for _format_value — used by both frame and heap rendering."""
+
+    def test_integer_value(self):
+        text = _format_value(42)
+        assert text.plain == "42"
+
+    def test_string_value(self):
+        text = _format_value("hello")
+        assert text.plain == '"hello"'
+
+    def test_none_value(self):
+        text = _format_value(None)
+        assert text.plain == "null"
+
+    def test_float_value(self):
+        text = _format_value(3.14)
+        assert text.plain == "3.14"
+
+    def test_symbolic_dict(self):
+        sym = {"__symbolic__": True, "name": "x"}
+        text = _format_value(sym)
+        assert text.plain == "x"
+
+    def test_unknown_type_truncates(self):
+        text = _format_value([1, 2, 3])
+        assert text.plain == "[1, 2, 3]"
+
+    def test_long_value_truncated_to_80(self):
+        long_val = list(range(100))
+        text = _format_value(long_val)
+        assert len(text.plain) <= 80
