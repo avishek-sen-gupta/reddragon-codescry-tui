@@ -222,6 +222,18 @@ mcp = ["mcp (>=1.0) ; python_version >= \"3.10\""]
 vertex = ["google-auth[requests] (>=2,<3)"]
 
 [[package]]
+name = "antlr4-python3-runtime"
+version = "4.13.2"
+description = "ANTLR 4.13.2 runtime for Python 3"
+optional = false
+python-versions = "*"
+groups = ["ml"]
+files = [
+    {file = "antlr4_python3_runtime-4.13.2-py3-none-any.whl", hash = "sha256:fe3835eb8d33daece0e799090eda89719dbccee7aa39ef94eed3818cafa5a7e8"},
+    {file = "antlr4_python3_runtime-4.13.2.tar.gz", hash = "sha256:909b647e1d2fc2b70180ac586df3933e38919c85f98ccc656a96cd3f25ef3916"},
+]
+
+[[package]]
 name = "anyio"
 version = "4.12.1"
 description = "High-level concurrency and networking framework on top of asyncio or Trio"
@@ -3266,6 +3278,7 @@ develop = false
 
 [package.dependencies]
 anthropic = ">=0.84.0,<0.85.0"
+antlr4-python3-runtime = ">=4.13.2,<5.0.0"
 openai = ">=2.24.0,<3.0.0"
 pydantic = ">=2.12.5,<3.0.0"
 tree-sitter = ">=0.25.2,<0.26.0"
@@ -3275,7 +3288,7 @@ tree-sitter-language-pack = ">=0.13.0,<0.14.0"
 type = "git"
 url = "https://github.com/avishek-sen-gupta/red-dragon.git"
 reference = "main"
-resolved_reference = "63f6ff9504c6eb7867ea77379b7569d4214f6b6e"
+resolved_reference = "1e79143d90ee822e29d5de109a658ed85f4caf80"
 
 [[package]]
 name = "referencing"
