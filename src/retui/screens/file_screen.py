@@ -103,6 +103,7 @@ class FileScreen(Screen):
     def _populate_ui(self, source_data: dict, symbols: list, signals: list) -> None:
         """Update all UI widgets on the main thread."""
         viewer = self.query_one("#source-viewer", RichLog)
+        viewer.can_focus = False
         viewer.clear()
 
         if "error" in source_data:
@@ -137,32 +138,31 @@ class FileScreen(Screen):
         if symbols:
             sym_table = self.query_one("#file-symbol-table", SymbolTable)
             sym_table.populate(symbols)
+            sym_table.focus()
         if signals:
             int_table = self.query_one("#file-integration-table", IntegrationTable)
             int_table.populate(signals)
 
     @on(DataTable.RowSelected, "#file-symbol-table")
     def on_symbol_selected(self, event: DataTable.RowSelected) -> None:
-        """Open FunctionScreen when a function/method symbol is selected."""
+        """Open FunctionScreen when a symbol is selected."""
         sym_table = self.query_one("#file-symbol-table", SymbolTable)
         row_key = str(event.row_key.value) if event.row_key else ""
         sym_info = sym_table.get_symbol_by_key(row_key)
         if not sym_info:
             return
 
-        kind = sym_info["kind"].lower()
-        if kind in ("function", "method", "def", "member"):
-            from retui.screens.function_screen import FunctionScreen
+        from retui.screens.function_screen import FunctionScreen
 
-            self.app.push_screen(
-                FunctionScreen(
-                    config=self.config,
-                    repo=self.repo,
-                    bundle=self.bundle,
-                    file_path=self.file_path,
-                    symbol_info=sym_info,
-                )
+        self.app.push_screen(
+            FunctionScreen(
+                config=self.config,
+                repo=self.repo,
+                bundle=self.bundle,
+                file_path=self.file_path,
+                symbol_info=sym_info,
             )
+        )
 
     def action_go_back(self) -> None:
         self.app.pop_screen()

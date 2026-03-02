@@ -3288,7 +3288,7 @@ tree-sitter-language-pack = ">=0.13.0,<0.14.0"
 type = "git"
 url = "https://github.com/avishek-sen-gupta/red-dragon.git"
 reference = "main"
-resolved_reference = "1e79143d90ee822e29d5de109a658ed85f4caf80"
+resolved_reference = "6605590720a4ccf4732a29ec15f958c4580d8e92"
 
 [[package]]
 name = "referencing"

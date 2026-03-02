@@ -59,6 +59,7 @@ DashboardScreen ──Enter──▸ RepoScreen ──Enter──▸ FileScreen 
 ### FileScreen
 - Syntax-highlighted source viewer (background-loaded for responsiveness)
 - File-scoped symbols and integration signals
+- Enter on any symbol navigates to FunctionScreen (supports all CTags kinds including COBOL sections, paragraphs, etc.)
 
 ### FunctionScreen
 - **IR tab**: Color-coded three-address code instructions with opcode-based styling
