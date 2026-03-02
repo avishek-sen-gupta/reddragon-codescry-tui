@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from retui.facade.types import FunctionAnalysis, SurveyBundle
 from retui.session.config import EmbeddingConfig
+
+logger = logging.getLogger(__name__)
 
 
 class AnalysisFacade:
@@ -31,7 +34,10 @@ class AnalysisFacade:
         return self._bge_client
 
     def survey_repo(
-        self, repo_path: str, languages: list[str] | None = None
+        self,
+        repo_path: str,
+        languages: list[str] | None = None,
+        exclude_files: list[str] | None = None,
     ) -> SurveyBundle:
         """Run a full codescry survey + BGE embedding concretisation."""
         if repo_path in self._survey_cache:
@@ -49,6 +55,7 @@ class AnalysisFacade:
         report, ctags, integrations, resolution, concretisation = survey(
             repo_path=repo_path,
             languages=lang_objs,
+            exclude_files=exclude_files or [],
         )
 
         # Run BGE embedding concretisation if enabled

@@ -80,7 +80,9 @@ class RepoScreen(Screen):
     def _run_survey(self) -> None:
         repo_path = str(Path(self.repo.path).expanduser().resolve())
         try:
-            self.bundle = self.facade.survey_repo(repo_path, self.repo.languages)
+            self.bundle = self.facade.survey_repo(
+                repo_path, self.repo.languages, self.repo.exclude_files
+            )
             self.app.call_from_thread(self._populate_widgets)
         except Exception as e:
             self.app.call_from_thread(self._show_survey_error, str(e))

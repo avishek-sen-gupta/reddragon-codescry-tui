@@ -15,6 +15,7 @@ class RepoConfig(BaseModel):
     path: str
     languages: list[str] = Field(default_factory=list)
     auto_survey: bool = False
+    exclude_files: list[str] = Field(default_factory=list)
 
 
 class LLMConfig(BaseModel):

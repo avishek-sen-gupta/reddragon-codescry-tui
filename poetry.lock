@@ -633,7 +633,7 @@ ml = ["anthropic (>=0.42.0)", "ollama (>=0.4.0)"]
 type = "git"
 url = "https://github.com/avishek-sen-gupta/codescry.git"
 reference = "main"
-resolved_reference = "6e827b352d04db492b0c455f42dc720121f2af5a"
+resolved_reference = "38c486be86e148801b60a9130e6863de77b357f7"
 
 [[package]]
 name = "colorama"
