@@ -23,10 +23,12 @@ class AnalysisFacade:
         self,
         embedding_config: EmbeddingConfig | None = None,
         red_dragon_api: RedDragonAPI | None = None,
+        proleap_bridge_jar: str = "",
     ) -> None:
         self._survey_cache: dict[str, SurveyBundle] = {}
         self._function_cache: dict[tuple[str, str], FunctionAnalysis] = {}
         self._embedding_config = embedding_config or EmbeddingConfig()
+        self._proleap_bridge_jar = proleap_bridge_jar
         self._bge_client = None
         self._red_dragon: RedDragonAPI = red_dragon_api or DefaultRedDragonAPI()
 
@@ -126,6 +128,15 @@ class AnalysisFacade:
         """Set PROLEAP_BRIDGE_JAR env var if not already set."""
         if os.environ.get("PROLEAP_BRIDGE_JAR"):
             return
+
+        if self._proleap_bridge_jar:
+            jar_path = Path(self._proleap_bridge_jar).expanduser().resolve()
+            if jar_path.exists():
+                os.environ["PROLEAP_BRIDGE_JAR"] = str(jar_path)
+                logger.info("Set PROLEAP_BRIDGE_JAR from config to %s", jar_path)
+                return
+            logger.warning("ProLeap JAR from config not found at %s", jar_path)
+
         try:
             import interpreter
 

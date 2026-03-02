@@ -21,7 +21,10 @@ class RevEngApp(App):
     def __init__(self, config: AppConfig) -> None:
         super().__init__()
         self.config = config
-        self._facade = AnalysisFacade(embedding_config=config.embedding)
+        self._facade = AnalysisFacade(
+            embedding_config=config.embedding,
+            proleap_bridge_jar=config.proleap_bridge_jar,
+        )
         self._session = SessionManager(config)
         self._session.ensure_dirs()
 

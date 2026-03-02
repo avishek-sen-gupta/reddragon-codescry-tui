@@ -50,6 +50,7 @@ class AppConfig(BaseModel):
     version: int = 1
     repos: list[RepoConfig] = Field(default_factory=list)
     session_dir: str = "~/.rev-eng-tui/sessions"
+    proleap_bridge_jar: str = ""
     llm: LLMConfig = Field(default_factory=LLMConfig)
     embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
     neo4j: Neo4jConfig = Field(default_factory=Neo4jConfig)

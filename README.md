@@ -111,6 +111,7 @@ poetry run retui --config config/repos.json
     {"name": "my-service", "path": "/code/svc", "languages": ["Java"], "auto_survey": true}
   ],
   "session_dir": "~/.rev-eng-tui/sessions",
+  "proleap_bridge_jar": "~/code/red-dragon/proleap-bridge/target/proleap-bridge-0.1.0-shaded.jar",
   "llm": {"model": "anthropic/claude-sonnet-4-20250514", "api_key_env": "ANTHROPIC_API_KEY"},
   "embedding": {"enabled": true, "model": "BAAI/bge-base-en-v1.5", "threshold": 0.62},
   "neo4j": {"enabled": false}
