@@ -143,9 +143,9 @@ The `llm.model` field uses [LiteLLM's provider/model format](https://docs.litell
 The TUI delegates all analysis to two libraries:
 
 - **Codescry** (`repo_surveyor`): `survey()` scans a repo and returns CTags symbols, integration signals, resolution results, and concretisation. Optionally runs BGE embedding concretisation via `PatternEmbeddingConcretiser` for signal classification.
-- **Red Dragon** (`interpreter`): `lower_source()` parses and lowers code to IR. `build_cfg_from_source()` builds a function-scoped CFG. `dump_mermaid()` generates Mermaid flowcharts. `execute_traced()` performs symbolic execution with per-step VMState snapshots for replay. `analyze()` computes dataflow (def-use chains, reaching definitions). `extract_function_source()` uses tree-sitter AST parsing to extract function bodies from source files.
+- **Red Dragon** (`interpreter`): `lower_source()` parses and lowers code to IR. `build_cfg_from_source()` builds a function-scoped CFG. `dump_mermaid()` generates Mermaid flowcharts. `execute_traced()` performs symbolic execution with per-step VMState snapshots for replay. `analyze()` computes dataflow (def-use chains, reaching definitions). `extract_function_source()` uses tree-sitter AST parsing to extract function bodies from source files. For COBOL programs, the ProLeap bridge frontend is used to lower the entire program to IR (no function extraction), with the `PROLEAP_BRIDGE_JAR` path auto-detected from the Red Dragon installation.
 
-The `AnalysisFacade` (`facade/analysis.py`) unifies both libraries into a single cached API. Function-level analysis uses Red Dragon's API to scope the CFG to just the selected function via `extract_function_instructions()`.
+The `AnalysisFacade` (`facade/analysis.py`) unifies both libraries into a single cached API, accepting a `RedDragonAPI` adapter via dependency injection. Function-level analysis uses Red Dragon's API to scope the CFG to just the selected function via `extract_function_instructions()`. For COBOL, the entire program is analysed as a single unit (no function slicing).
 
 ### CFG Rendering
 

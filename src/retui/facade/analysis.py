@@ -3,22 +3,32 @@
 from __future__ import annotations
 
 import logging
+import os
+from pathlib import Path
 from typing import Any
 
+from retui.facade.red_dragon_api import DefaultRedDragonAPI, RedDragonAPI
 from retui.facade.types import FunctionAnalysis, SurveyBundle
 from retui.session.config import EmbeddingConfig
 
 logger = logging.getLogger(__name__)
 
+_FRONTEND_COBOL = "cobol"
+
 
 class AnalysisFacade:
     """Unified analysis API caching results in-memory."""
 
-    def __init__(self, embedding_config: EmbeddingConfig | None = None) -> None:
+    def __init__(
+        self,
+        embedding_config: EmbeddingConfig | None = None,
+        red_dragon_api: RedDragonAPI | None = None,
+    ) -> None:
         self._survey_cache: dict[str, SurveyBundle] = {}
         self._function_cache: dict[tuple[str, str], FunctionAnalysis] = {}
         self._embedding_config = embedding_config or EmbeddingConfig()
         self._bge_client = None
+        self._red_dragon: RedDragonAPI = red_dragon_api or DefaultRedDragonAPI()
 
     def _get_bge_client(self):
         """Lazily initialise the BGE embedding client."""
@@ -112,6 +122,27 @@ class AnalysisFacade:
             return []
         return bundle.signals_for_file(file_path)
 
+    def _ensure_proleap_jar(self) -> None:
+        """Set PROLEAP_BRIDGE_JAR env var if not already set."""
+        if os.environ.get("PROLEAP_BRIDGE_JAR"):
+            return
+        try:
+            import interpreter
+
+            jar_path = (
+                Path(interpreter.__file__).parent.parent
+                / "proleap-bridge"
+                / "target"
+                / "proleap-bridge-0.1.0-shaded.jar"
+            )
+            if jar_path.exists():
+                os.environ["PROLEAP_BRIDGE_JAR"] = str(jar_path)
+                logger.info("Set PROLEAP_BRIDGE_JAR to %s", jar_path)
+            else:
+                logger.warning("ProLeap JAR not found at %s", jar_path)
+        except Exception as e:
+            logger.warning("Could not resolve ProLeap JAR path: %s", e)
+
     def analyze_function(
         self,
         source: str,
@@ -119,53 +150,59 @@ class AnalysisFacade:
         function_name: str,
         entry_point: str = "",
         max_steps: int = 100,
+        frontend_type: str = "deterministic",
     ) -> FunctionAnalysis:
         """Run red-dragon analysis on a function."""
         cache_key = (function_name, source[:200])
         if cache_key in self._function_cache:
             return self._function_cache[cache_key]
 
+        is_cobol = frontend_type == _FRONTEND_COBOL
+        if is_cobol:
+            self._ensure_proleap_jar()
+
+        # For COBOL, skip function scoping — analyse the whole program
+        scoped_function_name = "" if is_cobol else function_name
+
         try:
-            from interpreter.api import (
-                lower_source,
-                build_cfg_from_source,
-                dump_mermaid,
-                execute_traced,
-            )
-            from interpreter.dataflow import analyze as dataflow_analyze
-            from interpreter.registry import build_registry
+            api = self._red_dragon
 
             # Lower source to IR
-            instructions = lower_source(source, language)
+            instructions = api.lower_source(
+                source, language, frontend_type=frontend_type
+            )
 
-            # Build function-scoped CFG via Red Dragon's API
-            cfg = build_cfg_from_source(
+            # Build CFG (whole-program for COBOL, function-scoped otherwise)
+            cfg = api.build_cfg_from_source(
                 source,
                 language,
-                function_name=function_name,
+                frontend_type=frontend_type,
+                function_name=scoped_function_name,
             )
 
             # Build registry
-            registry = build_registry(instructions, cfg)
+            registry = api.build_registry(instructions, cfg)
 
-            # Dataflow analysis on the function-scoped CFG
-            dataflow = dataflow_analyze(cfg)
+            # Dataflow analysis on the CFG
+            dataflow = api.dataflow_analyze(cfg)
 
-            # Traced symbolic execution (produces both trace and final state)
-            trace = execute_traced(
+            # Traced symbolic execution
+            trace = api.execute_traced(
                 source=source,
                 language=language,
-                function_name=function_name,
+                function_name=scoped_function_name,
                 entry_point=entry_point,
+                frontend_type=frontend_type,
                 max_steps=max_steps,
             )
             vm_state = trace.steps[-1].vm_state if trace.steps else None
 
-            # Generate Mermaid via Red Dragon's API
-            cfg_mermaid = dump_mermaid(
+            # Generate Mermaid diagram
+            cfg_mermaid = api.dump_mermaid(
                 source,
                 language,
-                function_name=function_name,
+                frontend_type=frontend_type,
+                function_name=scoped_function_name,
             )
 
             result = FunctionAnalysis(

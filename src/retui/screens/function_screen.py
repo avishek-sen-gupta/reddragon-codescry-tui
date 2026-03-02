@@ -102,7 +102,13 @@ class FunctionScreen(Screen):
         if "." in func_name:
             func_name = func_name.rsplit(".", 1)[-1]
 
-        source = self._extract_function_source(func_name, language)
+        if language == "cobol":
+            source = self._read_entire_file()
+            frontend_type = "cobol"
+        else:
+            source = self._extract_function_source(func_name, language)
+            frontend_type = "deterministic"
+
         if not source:
             self.app.call_from_thread(
                 self._show_error, "Could not extract function source."
@@ -113,8 +119,25 @@ class FunctionScreen(Screen):
             source=source,
             language=language,
             function_name=func_name,
+            frontend_type=frontend_type,
         )
         self.app.call_from_thread(self._populate_tabs)
+
+    def _read_entire_file(self) -> str:
+        """Read the entire source file for whole-program analysis (e.g. COBOL)."""
+        repo_root = Path(self.repo.path).expanduser().resolve()
+        full_path = repo_root / self.file_path
+
+        if not full_path.exists():
+            return ""
+
+        try:
+            return full_path.read_text(encoding="utf-8", errors="replace")
+        except Exception as e:
+            self.app.call_from_thread(
+                self._show_error, f"Could not read {full_path}: {e}"
+            )
+            return ""
 
     def _extract_function_source(self, func_name: str, language: str) -> str:
         """Extract function source using Red Dragon's tree-sitter AST extraction."""
@@ -163,6 +186,7 @@ class FunctionScreen(Screen):
                 "c#": "csharp",
                 "kotlin": "kotlin",
                 "scala": "scala",
+                "cobol": "cobol",
             }
             return lang_map.get(lang, lang)
 
@@ -181,6 +205,8 @@ class FunctionScreen(Screen):
             "cs": "csharp",
             "kt": "kotlin",
             "scala": "scala",
+            "cbl": "cobol",
+            "cob": "cobol",
         }
         return ext_map.get(ext, "python")
 
