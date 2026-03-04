@@ -10,3 +10,4 @@ build/
 .idea/
 .DS_Store
 ~/.rev-eng-tui/
+config/repos.json
